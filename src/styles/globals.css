@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/* Inter variable — self-hosted (SIL OFL 1.1). Absolute /fonts/ paths resolve
+   against Vite's base ('/app/') at build time. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/InterVariable-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Tokens ported verbatim from the desktop app's @theme block
+   (BreezyScript src/styles/globals.css — see docs/audit/design-system-audit.md §2).
+   Single dark theme by design: "Dark, calm, content-first." */
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Brand */
+  --color-primary: #818cf8;
+  --color-primary-hover: #6366f1;
+  --color-primary-subtle: #1e1b4b;
+
+  /* Surfaces — elevation is background lightness + border, not shadow */
+  --color-bg: #09090b;
+  --color-surface: #18181b;
+  --color-surface-raised: #27272a;
+  --color-header: #09090b;
+  --color-sidebar: #111114;
+  --color-sidebar-hover: #1c1c20;
+  --color-sidebar-active: #27272a;
+
+  /* Text — the "lifted" grays are deliberate accessibility decisions; keep exact */
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #c4c4c8;
+  --color-text-muted: #9b9ba3;
+  --color-text-inverse: #09090b;
+  --color-text-sidebar: #d4d4d8;
+
+  /* Borders */
+  --color-border: #3f3f46;
+  --color-border-subtle: #27272a;
+
+  /* Status */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-caution: #fb923c;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
+  --color-accent-purple: #c084fc;
+
+  /* Tool accents (registry reconciled — plan §2.3) */
+  --color-tool-script: #a78bfa;
+  --color-tool-brain: #f472b6;
+  --color-tool-settings: #94a3b8;
+
+  /* Radii — observed effective scale */
+  --radius-control: 6px;
+  --radius-field: 8px;
+  --radius-row: 10px;
+  --radius-panel: 12px;
+
+  /* Type scale — body is 13px; the app is denser than web defaults */
+  --text-2xs: 11px;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.5;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.5;
+  --text-base: 14px;
+  --text-base--line-height: 1.6;
+  --text-md: 15px;
+  --text-md--line-height: 1.5;
+  --text-lg: 18px;
+  --text-lg--line-height: 1.4;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Global focus ring (ported) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbars (ported) + Firefox fallback (new for web) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Reduced motion (new for web) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Markdown prose — ported verbatim from the desktop .md-body block */
+.md-body {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.md-body p {
+  margin: 0 0 10px;
+}
+.md-body h1,
+.md-body h2,
+.md-body h3,
+.md-body h4 {
+  margin: 18px 0 8px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.md-body h1 { font-size: 1.4em; }
+.md-body h2 { font-size: 1.25em; }
+.md-body h3 { font-size: 1.1em; }
+.md-body h4 { font-size: 1em; }
+.md-body ul,
+.md-body ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+.md-body li {
+  margin: 3px 0;
+}
+.md-body a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.md-body code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.md-body pre {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.md-body pre code {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+.md-body blockquote {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+.md-body hr {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 14px 0;
+}
+.md-body table {
+  border-collapse: collapse;
+  margin: 0 0 10px;
+}
+.md-body th,
+.md-body td {
+  border: 1px solid var(--color-border);
+  padding: 6px 10px;
+}
+.md-body th {
+  background: var(--color-surface-raised);
+  font-weight: 600;
+}
