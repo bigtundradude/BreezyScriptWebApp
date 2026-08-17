@@ -64,6 +64,27 @@ export default defineSchema({
     .index('by_channel_source', ['channelId', 'sourceRef'])
     .searchIndex('search', { searchField: 'searchText', filterFields: ['channelId', 'kind'] }),
 
+  // ——— Idea Bank ———
+  // Deliberately separate from Scripts Pro's `ideas` table (own tool, own logic).
+  bankIdeas: defineTable({
+    channelId: v.id('channels'),
+    title: v.string(),
+    description: v.string(),
+    potentialTitles: v.array(v.string()), // ≤3, trimmed non-empty entries only
+    rating: v.number(), // integer 0–5; 0 = unrated
+    status: v.union(
+      v.literal('new'),
+      v.literal('ready'),
+      v.literal('done'),
+      v.literal('do_again'),
+      v.literal('wont_do'),
+    ),
+    searchText: v.string(), // title + potential titles + description, maintained by mutations
+    updatedAt: v.number(),
+  })
+    .index('by_channel', ['channelId', 'updatedAt'])
+    .searchIndex('search', { searchField: 'searchText', filterFields: ['channelId'] }),
+
   // ——— Scripts Pro ———
   ideas: defineTable({
     channelId: v.id('channels'),

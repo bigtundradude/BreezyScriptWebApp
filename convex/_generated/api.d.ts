@@ -13,6 +13,7 @@ import type * as channels from "../channels.js";
 import type * as feedbackFns from "../feedbackFns.js";
 import type * as foundationAssets from "../foundationAssets.js";
 import type * as http from "../http.js";
+import type * as ideaBank from "../ideaBank.js";
 import type * as ideas from "../ideas.js";
 import type * as lib_owner from "../lib/owner.js";
 import type * as library from "../library.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   feedbackFns: typeof feedbackFns;
   foundationAssets: typeof foundationAssets;
   http: typeof http;
+  ideaBank: typeof ideaBank;
   ideas: typeof ideas;
   "lib/owner": typeof lib_owner;
   library: typeof library;
