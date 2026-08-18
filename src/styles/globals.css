@@ -124,6 +124,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
+/* The styled scrollbar takes layout space, so a page-level scroller gaining or
+   losing it shifts the whole page's width (e.g. toggling the list filters).
+   Always reserve the gutter on page scrollers to keep content width stable. */
+main {
+  scrollbar-gutter: stable;
+}
 
 /* Reduced motion (new for web) */
 @media (prefers-reduced-motion: reduce) {
