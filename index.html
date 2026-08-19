@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- maximum-scale=1 stops iOS Safari from auto-zooming when a sub-16px
+         input is focused (the zoom persisted onto the dashboard); manual
+         pinch-zoom still works on modern iOS. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <meta name="robots" content="noindex" />
     <title>BreezyScript</title>
   </head>
