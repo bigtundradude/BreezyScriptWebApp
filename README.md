@@ -110,3 +110,5 @@ Settings → Environment Variables).
 - `convex/` — schema + functions; every function starts with `requireOwner(ctx)`
 - `landing/` — static public landing page, copied to `dist/` at build
 - `docs/` — migration brief, stack decision, implementation plan, phase-0 audits
+
+<!-- deploy touch: 2026-08-19 -->
