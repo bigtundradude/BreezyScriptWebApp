@@ -42,8 +42,9 @@ id-addressed docs. `channels.remove` adds both tables to its cascade loop.
   - Then one row per URL: tag badge, truncated URL, and two copy actions, each a
     ≥44 px tap target with the standard copied-checkmark feedback (`CopyButton`):
     1. **Copy link** — puts just the URL on the clipboard.
-    2. **Copy with title** — puts `{shortTitle} ⟶ {url}` on the clipboard (short
-       title, space, long rightwards arrow U+27F6, space, URL).
+    2. **Copy with title** — puts `{shortTitle} ⟶ {url}` on the clipboard: the short
+       title, then the long rightwards arrow U+27F6 with exactly one space on each
+       side of it, then the URL.
   - Tapping the card body opens the editor.
 - **Editor** (state-driven action bar pattern, like the persona editor): fields for
   title and short title, then URL rows (url input + tag select + remove) and an
@@ -67,7 +68,7 @@ id-addressed docs. `channels.remove` adds both tables to its cascade loop.
 
 ## Open items (defaults chosen, say the word to change)
 
-1. Copy-with-title separator is `⟶` (U+27F6, the long rightwards arrow; owner,
-   2026-08-18) with spaces. If a target platform mangles that character, a hyphen
-   fallback is a one-line change.
+1. Copy-with-title separator is `⟶` (U+27F6, the long rightwards arrow) with one
+   space on both sides (owner, 2026-08-18). If a target platform mangles that
+   character, a hyphen fallback is a one-line change.
 2. No per-URL note field in v1; the tag is assumed to say enough about placement.
