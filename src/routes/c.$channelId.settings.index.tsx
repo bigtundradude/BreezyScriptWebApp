@@ -9,6 +9,7 @@ import {
   Timer,
   Type,
   UserRound,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -38,6 +39,12 @@ const GROUPS: Array<{
         name: 'Personas',
         blurb: 'Who your scripts sound like; one is the default.',
         icon: UserRound,
+      },
+      {
+        slug: 'audience',
+        name: 'Audience',
+        blurb: 'Who you make videos for and the problem you solve.',
+        icon: UsersRound,
       },
     ],
   },

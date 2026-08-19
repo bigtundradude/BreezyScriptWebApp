@@ -105,8 +105,8 @@ export const listPersonas = query({
   handler: async (ctx, { channelId }) => {
     await requireOwner(ctx)
     const personas = await ctx.db
-      .query('foundationAssets')
-      .withIndex('by_channel_type', (q) => q.eq('channelId', channelId).eq('type', 'persona'))
+      .query('bankPersonas')
+      .withIndex('by_channel', (q) => q.eq('channelId', channelId))
       .collect()
     return personas.map((p) => ({ _id: p._id, label: p.label, isDefault: p.isDefault }))
   },
@@ -159,12 +159,16 @@ export const draftContext = internalQuery({
     let personaLabel = ''
     let personaSnippet = ''
     if (personaId) {
-      const persona = await ctx.db.get(personaId as Id<'foundationAssets'>).catch(() => null)
-      if (persona && persona.channelId === channelId && persona.type === 'persona') {
+      const persona = await ctx.db.get(personaId as Id<'bankPersonas'>).catch(() => null)
+      if (persona && persona.channelId === channelId) {
         personaLabel = persona.label
-        personaSnippet = persona.promptSnippet
+        personaSnippet = persona.voice
       }
     }
+    const audience = await ctx.db
+      .query('bankAudiences')
+      .withIndex('by_channel', (q) => q.eq('channelId', channelId))
+      .unique()
     const wpmPref = await ctx.db
       .query('userPrefs')
       .withIndex('by_key', (q) => q.eq('key', `wordsPerMinute:${channelId}`))
@@ -181,6 +185,7 @@ export const draftContext = internalQuery({
       structure,
       personaLabel,
       personaSnippet,
+      audienceDescription: audience?.description ?? '',
       wordsPerMinute: typeof wpmPref?.value === 'number' ? wpmPref.value : DEFAULT_WPM,
     }
   },
@@ -230,12 +235,16 @@ function composeDraftPrompt(context: {
   materials: { description: string; transcript: string; notes: string; researchText: string; midwayCta: string; outroCta: string; disclaimer: string }
   structure: { name: string; text: string }
   personaSnippet: string
+  audienceDescription: string
   targetWords: number
   targetMinutes: number
 }) {
   const system =
     'You are an expert YouTube scriptwriter who writes complete, ready-to-record spoken-word scripts in the creator’s own voice. ' +
     (context.personaSnippet ? `CREATOR PERSONA:\n${context.personaSnippet}\n` : '') +
+    (context.audienceDescription
+      ? `TARGET AUDIENCE (write for exactly this viewer):\n${context.audienceDescription}\n`
+      : '') +
     'Rules: Write ONLY the words to be spoken, first person, conversational. ' +
     'Use markdown with ## section headers that follow the given structure; put any non-spoken directions in [brackets], sparingly. ' +
     'Ground every claim, story, number, and opinion ONLY in the provided materials. The answers transcript is the creator speaking: reuse their strongest phrasings and stories; never invent experiences they did not describe. ' +
@@ -301,6 +310,7 @@ export const generate = action({
         materials: context.materials,
         structure: context.structure,
         personaSnippet: context.personaSnippet,
+        audienceDescription: context.audienceDescription,
         targetWords,
         targetMinutes,
       })

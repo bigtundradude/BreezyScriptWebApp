@@ -11,8 +11,10 @@
 import type * as ai from "../ai.js";
 import type * as aiSettings from "../aiSettings.js";
 import type * as auth from "../auth.js";
+import type * as bankAudience from "../bankAudience.js";
 import type * as bankDrafts from "../bankDrafts.js";
 import type * as bankPersonalize from "../bankPersonalize.js";
+import type * as bankPersonas from "../bankPersonas.js";
 import type * as bankQuestions from "../bankQuestions.js";
 import type * as bankSnippets from "../bankSnippets.js";
 import type * as bankStructures from "../bankStructures.js";
@@ -49,8 +51,10 @@ declare const fullApi: ApiFromModules<{
   ai: typeof ai;
   aiSettings: typeof aiSettings;
   auth: typeof auth;
+  bankAudience: typeof bankAudience;
   bankDrafts: typeof bankDrafts;
   bankPersonalize: typeof bankPersonalize;
+  bankPersonas: typeof bankPersonas;
   bankQuestions: typeof bankQuestions;
   bankSnippets: typeof bankSnippets;
   bankStructures: typeof bankStructures;

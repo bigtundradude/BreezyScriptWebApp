@@ -229,6 +229,35 @@ export default defineSchema({
     .index('by_idea', ['ideaId'])
     .index('by_channel', ['channelId']),
 
+  // Creator personas (owner spec 2026-08-18): built from 3-4 samples of the
+  // creator's own spoken-style writing plus explicit style controls; the LLM
+  // extracts `voice`, which stays editable and is what the drafter injects.
+  bankPersonas: defineTable({
+    channelId: v.id('channels'),
+    label: v.string(),
+    samples: v.array(v.string()), // up to 4 script/transcript excerpts
+    neverUse: v.array(v.string()), // words & phrases banned from scripts
+    signature: v.array(v.string()), // words & phrases the creator does use
+    profanity: v.string(), // 'none' | 'mild' | 'moderate' | 'full'
+    pacing: v.string(), // 'fast' | 'moderate' | 'slow' | 'varied'
+    energy: v.string(), // 'high' | 'upbeat' | 'calm' | 'intense' | 'varied'
+    notes: v.string(), // freeform extra style notes
+    voice: v.string(), // extracted + user-edited voice guide (prompt snippet)
+    isDefault: v.boolean(),
+    updatedAt: v.number(),
+  }).index('by_channel', ['channelId']),
+
+  // Target audience (owner spec 2026-08-18): one description per channel of
+  // who the viewer is, the problem they have, and the creator's framework for
+  // solving it. Composed by hand or via the AI interview; always editable.
+  bankAudiences: defineTable({
+    channelId: v.id('channels'),
+    description: v.string(),
+    // Last AI-walkthrough answers, kept so the interview can be revisited.
+    interview: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
+    updatedAt: v.number(),
+  }).index('by_channel', ['channelId']),
+
   // App-wide AI model choices per provider (docs/idea-workflow-plan.md §6b).
   // API keys are NEVER stored here — they live in deployment env vars and are
   // read only inside Convex functions. Active provider per task class lives in
