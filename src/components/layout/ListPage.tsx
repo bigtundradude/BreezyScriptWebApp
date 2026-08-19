@@ -24,7 +24,10 @@ export function ListPage({
   children?: ReactNode
 }) {
   return (
-    <div className="flex h-full flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
+    // min-h-full (not h-full): with h-full, content taller than the viewport
+    // overflows past the wrapper's bottom padding and the last row rides the
+    // screen edge. pb-10 keeps a comfortable runway under every list.
+    <div className="flex min-h-full flex-col gap-5 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
       {(title || action) && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

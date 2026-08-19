@@ -191,7 +191,7 @@ export function NoteEditor({
   }
   if (!isNew && note === null) {
     return (
-      <div className="mx-auto max-w-190 px-4 py-5 md:px-8 md:py-7">
+      <div className="mx-auto max-w-190 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
         <div className="rounded-row border border-danger px-4 py-3 text-sm text-danger">
           Note not found. It may have been deleted.
         </div>
@@ -203,7 +203,7 @@ export function NoteEditor({
   }
 
   return (
-    <div className="mx-auto flex max-w-190 flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
+    <div className="mx-auto flex max-w-190 flex-col gap-4 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
       <div className="flex items-center gap-3">
         <button
           onClick={backToList}

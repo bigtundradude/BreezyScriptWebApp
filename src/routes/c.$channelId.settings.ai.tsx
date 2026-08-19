@@ -10,7 +10,7 @@ function AiSettingsPage() {
   const { channelId } = Route.useParams()
   const navigate = useNavigate()
   return (
-    <div className="mx-auto flex w-full max-w-190 flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
+    <div className="mx-auto flex w-full max-w-190 flex-col gap-4 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => void navigate({ to: `/c/${channelId}/settings` })}
