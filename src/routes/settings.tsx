@@ -37,12 +37,20 @@ function SettingsPage() {
             />
           ) : (
             <>
-              <div>
-                <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Channels</h2>
-                <p className="mt-0.5 text-sm text-text-secondary">
-                  Each channel has its own Second Brain, script ideas, affiliate links, and
-                  settings.
-                </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">
+                    Channels
+                  </h2>
+                  <p className="mt-0.5 text-sm text-text-secondary">
+                    Each channel has its own Second Brain, script ideas, affiliate links, and
+                    settings.
+                  </p>
+                </div>
+                <Button className="shrink-0" onClick={() => setEditing('new')}>
+                  <Plus size={14} />
+                  Add channel
+                </Button>
               </div>
 
               {channels === undefined ? (
@@ -69,10 +77,6 @@ function SettingsPage() {
                 ))
               )}
 
-              <Button className="w-fit" onClick={() => setEditing('new')}>
-                <Plus size={14} />
-                Add channel
-              </Button>
             </>
           )}
         </div>
