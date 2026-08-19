@@ -24,11 +24,6 @@ export const run = internalMutation({
       channelId = await ctx.db.insert('channels', {
         name: CHANNEL_NAME,
         description: 'Seeded workflow test data — helping new YouTubers grow',
-        identity:
-          'Brand: practical, encouraging, zero-hype YouTube education.\n' +
-          'Point of view: consistent small creators beat viral one-offs; the channel is the top of an online business, not the business.\n' +
-          'Stands for: audience-first packaging, honest analytics, repeatable systems.\n' +
-          'Stands against: sub-4-sub tricks, algorithm superstition, burnout schedules.',
         updatedAt: now,
       })
     }

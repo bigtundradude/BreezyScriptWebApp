@@ -1,152 +1,216 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, FolderOpen, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
-import type { Doc } from '../../convex/_generated/dataModel'
+import type { Doc, Id } from '../../convex/_generated/dataModel'
 import { Header } from '@/components/layout/Header'
-import { Button, Card, ConfirmDialog, Input, Spinner, Textarea } from '@/components/ui'
+import { Button, Input, Spinner } from '@/components/ui'
+import { useConfirm } from '@/components/shared/useConfirm'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
 })
 
+// Channel manager (mobile-first list-then-editor pattern, owner 2026-08-18):
+// tap a channel card to edit it; the editor uses the standard state-driven
+// action bar instead of always-open cards with per-card save buttons.
 function SettingsPage() {
   const channels = useQuery(api.channels.list)
-  const create = useMutation(api.channels.create)
-  const [newName, setNewName] = useState('')
-  const [creating, setCreating] = useState(false)
+  const { confirm, ConfirmUI } = useConfirm()
+  const [editing, setEditing] = useState<'new' | Id<'channels'> | null>(null)
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg">
       <Header toolName="Settings" />
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
-          <div>
-            <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Channels</h2>
-            <p className="mt-0.5 text-sm text-text-secondary">
-              Each channel has its own Second Brain, script ideas, and settings. The identity text
-              is injected into every script draft prompt for that channel.
-            </p>
-          </div>
-
-          <div className="flex items-end gap-2.5">
-            <Input
-              label="New channel"
-              placeholder="Channel name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newName.trim()) {
-                  setCreating(true)
-                  void create({ name: newName }).finally(() => {
-                    setNewName('')
-                    setCreating(false)
-                  })
-                }
-              }}
-              className="max-w-80 flex-1"
+        <div className="mx-auto flex w-full max-w-190 flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
+          {editing ? (
+            <ChannelEditor
+              key={editing}
+              channel={
+                editing === 'new' ? null : (channels?.find((c) => c._id === editing) ?? null)
+              }
+              confirm={confirm}
+              onClose={() => setEditing(null)}
+              onCreated={(id) => setEditing(id)}
             />
-            <Button
-              loading={creating}
-              disabled={!newName.trim()}
-              onClick={() => {
-                setCreating(true)
-                void create({ name: newName }).finally(() => {
-                  setNewName('')
-                  setCreating(false)
-                })
-              }}
-            >
-              <Plus size={14} />
-              Add
-            </Button>
-          </div>
-
-          {channels === undefined ? (
-            <div className="flex items-center gap-2 py-6 text-sm text-text-muted">
-              <Spinner size={14} /> Loading…
-            </div>
           ) : (
-            channels.map((channel) => <ChannelCard key={channel._id} channel={channel} />)
+            <>
+              <div>
+                <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Channels</h2>
+                <p className="mt-0.5 text-sm text-text-secondary">
+                  Each channel has its own Second Brain, script ideas, affiliate links, and
+                  settings.
+                </p>
+              </div>
+
+              {channels === undefined ? (
+                <div className="flex items-center gap-2 py-6 text-sm text-text-muted">
+                  <Spinner size={14} /> Loading…
+                </div>
+              ) : (
+                channels.map((channel) => (
+                  <button
+                    key={channel._id}
+                    onClick={() => setEditing(channel._id)}
+                    className="flex min-h-13 items-center gap-3 rounded-panel border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-raised"
+                  >
+                    <FolderOpen size={16} className="shrink-0 text-text-muted" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium text-text-primary">
+                        {channel.name}
+                      </div>
+                      {channel.description && (
+                        <div className="truncate text-xs text-text-muted">{channel.description}</div>
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+
+              <Button className="w-fit" onClick={() => setEditing('new')}>
+                <Plus size={14} />
+                Add channel
+              </Button>
+            </>
           )}
         </div>
       </main>
+      {ConfirmUI}
     </div>
   )
 }
 
-function ChannelCard({ channel }: { channel: Doc<'channels'> }) {
+function ChannelEditor({
+  channel,
+  confirm,
+  onClose,
+  onCreated,
+}: {
+  channel: Doc<'channels'> | null
+  confirm: (opts: { title: string; message: string; confirmLabel?: string }) => Promise<boolean>
+  onClose: () => void
+  onCreated: (id: Id<'channels'>) => void
+}) {
+  const create = useMutation(api.channels.create)
   const update = useMutation(api.channels.update)
   const remove = useMutation(api.channels.remove)
   const navigate = useNavigate()
 
-  const [name, setName] = useState(channel.name)
-  const [description, setDescription] = useState(channel.description)
-  const [identity, setIdentity] = useState(channel.identity)
+  const baseline = useMemo(
+    () => ({ name: channel?.name ?? '', description: channel?.description ?? '' }),
+    [channel],
+  )
+  const [form, setForm] = useState(baseline)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
 
-  const dirty =
-    name !== channel.name || description !== channel.description || identity !== channel.identity
+  const dirty = form.name !== baseline.name || form.description !== baseline.description
 
-  const save = async () => {
+  const doSave = async (stay: boolean) => {
+    if (!form.name.trim()) return
     setSaving(true)
     try {
-      await update({ channelId: channel._id, name, description, identity })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+      if (channel) {
+        await update({ channelId: channel._id, name: form.name, description: form.description })
+        if (!stay) onClose()
+      } else {
+        const id = await create({ name: form.name, description: form.description })
+        if (stay) onCreated(id as Id<'channels'>)
+        else onClose()
+      }
     } finally {
       setSaving(false)
     }
   }
 
+  // Cmd/Ctrl+S saves and stays (editor action bar pattern).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault()
+        if (dirty && !saving) void doSave(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
+  const cancel = async () => {
+    if (dirty) {
+      const ok = await confirm({
+        title: 'Discard changes?',
+        message: 'Your unsaved channel edits are lost.',
+        confirmLabel: 'Discard',
+      })
+      if (!ok) return
+    }
+    onClose()
+  }
+
+  const confirmRemove = async () => {
+    if (!channel) return
+    const ok = await confirm({
+      title: `Delete “${channel.name}”?`,
+      message:
+        "This permanently deletes the channel and everything in it — notes, ideas, drafts, links, and settings. This can't be undone.",
+      confirmLabel: 'Delete everything',
+    })
+    if (!ok) return
+    await remove({ channelId: channel._id })
+    void navigate({ to: '/' })
+  }
+
   return (
-    <Card>
-      <div className="flex flex-col gap-3.5">
-        <div className="flex gap-3 max-md:flex-col">
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
-          <Input
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional"
-            className="flex-2"
-          />
-        </div>
-        <Textarea
-          label="Identity"
-          value={identity}
-          onChange={(e) => setIdentity(e.target.value)}
-          rows={4}
-          placeholder={'Who this channel is: brand, point of view, what it stands for and against.\nInjected as the CHANNEL IDENTITY block in every script draft prompt. Leave blank to omit.'}
-        />
-        <div className="flex items-center gap-2">
-          <Button size="sm" loading={saving} disabled={!dirty && !saving} onClick={() => void save()}>
-            {saved ? 'Saved' : 'Save'}
+    <div className="flex flex-col gap-4">
+      <button
+        onClick={() => void cancel()}
+        className="flex min-h-8 w-fit items-center gap-1 text-sm text-text-muted transition-colors hover:text-text-primary"
+      >
+        <ChevronLeft size={15} />
+        Channels
+      </button>
+      <h3 className="text-base font-semibold text-text-primary">
+        {channel ? channel.name : 'New channel'}
+      </h3>
+
+      <Input
+        label="Name"
+        placeholder="e.g. Big Tundra"
+        value={form.name}
+        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+      />
+      <Input
+        label="Description"
+        placeholder="What the channel is about (optional)"
+        value={form.description}
+        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+      />
+
+      <div className="sticky bottom-0 z-10 mt-1 flex items-center gap-2 border-t border-border bg-bg py-3">
+        {channel && (
+          <Button variant="danger" onClick={() => void confirmRemove()}>
+            <Trash2 size={14} />
+            Delete
           </Button>
-          <div className="flex-1" />
-          <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(true)}>
-            <span className="text-danger">Delete channel</span>
-          </Button>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          {dirty ? (
+            <>
+              <Button variant="secondary" onClick={() => void cancel()}>
+                Cancel
+              </Button>
+              <Button loading={saving} onClick={() => void doSave(false)}>
+                Save
+              </Button>
+            </>
+          ) : (
+            <Button variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          )}
         </div>
       </div>
-      <ConfirmDialog
-        open={confirmingDelete}
-        onClose={() => setConfirmingDelete(false)}
-        onConfirm={() => {
-          setDeleting(true)
-          void remove({ channelId: channel._id })
-            .then(() => navigate({ to: '/' }))
-            .finally(() => setDeleting(false))
-        }}
-        title={`Delete “${channel.name}”?`}
-        message="This permanently deletes the channel and everything in it — notes, ideas, foundations, productions, and feedback. This can't be undone."
-        confirmLabel="Delete everything"
-        loading={deleting}
-      />
-    </Card>
+    </div>
   )
 }

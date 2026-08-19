@@ -169,7 +169,6 @@ export const draftContext = internalQuery({
       .query('bankAudiences')
       .withIndex('by_channel', (q) => q.eq('channelId', channelId))
       .unique()
-    const channel = await ctx.db.get(channelId)
     const wpmPref = await ctx.db
       .query('userPrefs')
       .withIndex('by_key', (q) => q.eq('key', `wordsPerMinute:${channelId}`))
@@ -187,7 +186,6 @@ export const draftContext = internalQuery({
       personaLabel,
       personaSnippet,
       audienceDescription: audience?.description ?? '',
-      channelIdentity: channel?.identity ?? '',
       wordsPerMinute: typeof wpmPref?.value === 'number' ? wpmPref.value : DEFAULT_WPM,
     }
   },
@@ -238,13 +236,11 @@ function composeDraftPrompt(context: {
   structure: { name: string; text: string }
   personaSnippet: string
   audienceDescription: string
-  channelIdentity: string
   targetWords: number
   targetMinutes: number
 }) {
   const system =
     'You are an expert YouTube scriptwriter who writes complete, ready-to-record spoken-word scripts in the creator’s own voice. ' +
-    (context.channelIdentity ? `CHANNEL IDENTITY:\n${context.channelIdentity}\n` : '') +
     (context.personaSnippet ? `CREATOR PERSONA:\n${context.personaSnippet}\n` : '') +
     (context.audienceDescription
       ? `TARGET AUDIENCE (write for exactly this viewer):\n${context.audienceDescription}\n`
@@ -315,7 +311,6 @@ export const generate = action({
         structure: context.structure,
         personaSnippet: context.personaSnippet,
         audienceDescription: context.audienceDescription,
-        channelIdentity: context.channelIdentity,
         targetWords,
         targetMinutes,
       })

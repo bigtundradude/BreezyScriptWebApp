@@ -29,7 +29,6 @@ export const create = mutation({
     return await ctx.db.insert('channels', {
       name: trimmed,
       description: description?.trim() ?? '',
-      identity: '',
       updatedAt: Date.now(),
     })
   },
@@ -40,9 +39,8 @@ export const update = mutation({
     channelId: v.id('channels'),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
-    identity: v.optional(v.string()),
   },
-  handler: async (ctx, { channelId, name, description, identity }) => {
+  handler: async (ctx, { channelId, name, description }) => {
     await requireOwner(ctx)
     const channel = await ctx.db.get(channelId)
     if (!channel) throw new Error('Channel not found')
@@ -53,7 +51,6 @@ export const update = mutation({
       patch.name = trimmed
     }
     if (description !== undefined) patch.description = description
-    if (identity !== undefined) patch.identity = identity
     await ctx.db.patch(channelId, patch)
   },
 })

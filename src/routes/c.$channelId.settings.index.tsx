@@ -3,6 +3,7 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
+  FolderOpen,
   LayoutList,
   Replace,
   ScrollText,
@@ -18,23 +19,18 @@ export const Route = createFileRoute('/c/$channelId/settings/')({
   component: SettingsHome,
 })
 
-// Grouped by purpose (owner spec 2026-08-18): mandatory setup first, then the
-// templating libraries, then personal preferences.
+// Grouped by purpose (owner spec 2026-08-18): channel setup first, then the
+// templating libraries, personal preferences, and finally app-wide settings
+// (things that apply to every channel, not just this one).
 const GROUPS: Array<{
   name: string
   blurb: string
-  categories: Array<{ slug: string; name: string; blurb: string; icon: LucideIcon }>
+  categories: Array<{ slug?: string; to?: string; name: string; blurb: string; icon: LucideIcon }>
 }> = [
   {
     name: 'Setup',
     blurb: 'Required before the app can draft for you.',
     categories: [
-      {
-        slug: 'ai',
-        name: 'AI integrations',
-        blurb: 'Providers, models, and connection tests.',
-        icon: Bot,
-      },
       {
         slug: 'personas',
         name: 'Personas',
@@ -97,6 +93,24 @@ const GROUPS: Array<{
       },
     ],
   },
+  {
+    name: 'App',
+    blurb: 'Applies to every channel, not just this one.',
+    categories: [
+      {
+        slug: 'ai',
+        name: 'AI integrations',
+        blurb: 'Providers, models, and connection tests.',
+        icon: Bot,
+      },
+      {
+        to: '/settings',
+        name: 'Channels',
+        blurb: 'Create, rename, and delete your channels.',
+        icon: FolderOpen,
+      },
+    ],
+  },
 ]
 
 function SettingsHome() {
@@ -125,8 +139,10 @@ function SettingsHome() {
           </div>
           {group.categories.map((category) => (
             <button
-              key={category.slug}
-              onClick={() => void navigate({ to: `/c/${channelId}/settings/${category.slug}` })}
+              key={category.name}
+              onClick={() =>
+                void navigate({ to: category.to ?? `/c/${channelId}/settings/${category.slug}` })
+              }
               className="flex min-h-16 w-full cursor-pointer select-none items-center gap-3 rounded-row border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-row border border-border bg-surface-raised text-text-secondary">

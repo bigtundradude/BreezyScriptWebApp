@@ -25,9 +25,6 @@ export default defineSchema({
   channels: defineTable({
     name: v.string(),
     description: v.string(),
-    // Free text injected as the CHANNEL IDENTITY block in draft prompts.
-    // Omitted from prompts when blank.
-    identity: v.string(),
     updatedAt: v.number(),
   }),
 

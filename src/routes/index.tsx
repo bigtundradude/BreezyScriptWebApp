@@ -31,6 +31,7 @@ function CreateFirstChannel() {
   const create = useMutation(api.channels.create)
   const setLastChannel = useMutation(api.channels.setLastChannel)
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,7 +42,7 @@ function CreateFirstChannel() {
     }
     setBusy(true)
     try {
-      const channelId = await create({ name })
+      const channelId = await create({ name, description })
       await setLastChannel({ channelId })
       // Root query re-renders reactively and redirects into the new channel.
     } catch (e) {
@@ -69,6 +70,13 @@ function CreateFirstChannel() {
           }}
           onKeyDown={(e) => e.key === 'Enter' && void submit()}
           autoFocus
+        />
+        <Input
+          label="Description"
+          placeholder="What the channel is about (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void submit()}
         />
         <Button loading={busy} onClick={() => void submit()}>
           Create channel
