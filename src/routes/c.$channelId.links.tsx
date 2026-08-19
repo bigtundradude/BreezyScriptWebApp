@@ -31,9 +31,9 @@ export const Route = createFileRoute('/c/$channelId/links')({
   component: LinksPage,
 })
 
-// Copy-with-title separator: long rightwards arrow U+27F6 with one space on
-// each side (owner, 2026-08-18).
-const SEPARATOR = ' ⟶ '
+// Copy-with-title separator: rightwards arrow U+2192 (&rarr;) with one space
+// on each side (owner, 2026-08-18).
+const SEPARATOR = ' → '
 
 function LinksPage() {
   const { channelId } = Route.useParams()
