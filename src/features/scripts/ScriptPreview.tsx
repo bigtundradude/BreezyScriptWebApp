@@ -91,7 +91,7 @@ export function ScriptPreview({
 
   return (
     <div className="fixed inset-0 z-300 flex flex-col bg-bg">
-      <div className="flex items-center gap-3 border-b border-border-subtle px-5 py-2.5">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-3 py-2.5 md:px-5">
         <button
           onClick={() => setPlaying((p) => !p)}
           className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-text-inverse"

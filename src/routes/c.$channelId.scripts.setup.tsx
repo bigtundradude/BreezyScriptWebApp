@@ -23,7 +23,7 @@ function SetupPage() {
   }, [wpm])
 
   return (
-    <div className="mx-auto flex max-w-170 flex-col gap-5 px-8 py-7">
+    <div className="mx-auto flex max-w-170 flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div>
         <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Using your AI</h2>
         <p className="mt-0.5 text-sm text-text-secondary">

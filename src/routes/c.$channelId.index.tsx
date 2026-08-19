@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ArrowRight, Brain, Clapperboard, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Brain, Clapperboard, Lightbulb, Settings, type LucideIcon } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 
@@ -29,6 +29,20 @@ const TOOLS: Array<{
     icon: Brain,
     accentVar: 'var(--color-tool-brain)',
   },
+  {
+    slug: 'bank',
+    name: 'Idea Bank',
+    description: 'A vault of raw video ideas: capture them, rate them 0–5, and stash potential titles.',
+    icon: Lightbulb,
+    accentVar: 'var(--color-tool-bank)',
+  },
+  {
+    slug: 'settings',
+    name: 'Settings',
+    description: 'Title shapes and AI integrations: providers, models, and connections.',
+    icon: Settings,
+    accentVar: 'var(--color-tool-settings)',
+  },
 ]
 
 function ChannelHome() {
@@ -36,7 +50,7 @@ function ChannelHome() {
   const channel = useQuery(api.channels.get, { channelId: channelId as Id<'channels'> })
 
   return (
-    <div className="mx-auto flex w-full max-w-190 flex-col gap-8 px-8 py-12">
+    <div className="mx-auto flex w-full max-w-190 flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
       <div>
         <h1 className="text-[28px] font-extrabold tracking-[-0.04em] text-text-primary">
           {channel?.name ?? ' '}

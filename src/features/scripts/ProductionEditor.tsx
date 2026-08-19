@@ -10,7 +10,6 @@ import {
   Input,
   MegapromptPanel,
   Modal,
-  Select,
   Spinner,
   Textarea,
 } from '@/components/ui'
@@ -45,12 +44,17 @@ import { formatDate } from '@/lib/utils'
 type TabId = 'package' | 'interview' | 'material' | 'script' | 'metadata'
 type Production = Doc<'productions'>
 
-const FORMAT_OPTIONS = [
-  { value: 'shorts', label: 'Shorts (~60s)' },
-  { value: 'medium', label: 'Medium (~8m)' },
-  { value: 'long', label: 'Long (~18m)' },
-  { value: 'podcast', label: 'Podcast (~45m)' },
-] as const
+// The user sets one thing: target minutes (default 8). The format bucket the
+// prompts need (FORMAT: line + per-format output budgets) is derived from it —
+// no second length control in the UI.
+function minutesToFormat(minutes: number): Production['format'] {
+  if (minutes <= 2) return 'shorts'
+  if (minutes <= 12) return 'medium'
+  if (minutes <= 30) return 'long'
+  return 'podcast'
+}
+
+const DEFAULT_MINUTES = 8
 
 export function ProductionEditor({
   channelId,
@@ -95,7 +99,17 @@ export function ProductionEditor({
   useEffect(() => {
     if (!production) return
     if (name === null) setName(production.name)
-    if (minutes === null) setMinutes(production.targetMinutes)
+    if (minutes === null) {
+      setMinutes(production.targetMinutes || DEFAULT_MINUTES)
+      // One-time repair for docs created before the minutes-drives-format change
+      // (they carry targetMinutes 0 / a hand-picked format).
+      if (production.targetMinutes === 0) {
+        autosave.patch({
+          targetMinutes: DEFAULT_MINUTES,
+          format: minutesToFormat(DEFAULT_MINUTES),
+        })
+      }
+    }
     if (interview === null) setInterview(production.interview)
     if (draft === null) setDraft(production.draftMarkdown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,7 +128,7 @@ export function ProductionEditor({
   }, [autosave])
 
   if (production === null) {
-    return <div className="px-8 py-7 text-sm text-danger">Production not found. It may have been deleted.</div>
+    return <div className="px-4 py-5 md:px-8 md:py-7 text-sm text-danger">Production not found. It may have been deleted.</div>
   }
   if (production === undefined || name === null || interview === null || draft === null || minutes === null) {
     return (
@@ -157,8 +171,8 @@ export function ProductionEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-3 px-8 pt-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 px-4 pt-4 md:px-8 md:pt-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <button
             onClick={() => {
               void autosave.flush()
@@ -176,27 +190,39 @@ export function ProductionEditor({
               autosave.patch({ name: e.target.value })
             }}
             onBlur={() => void autosave.flush()}
-            className="max-w-100 flex-1"
+            className="min-w-40 max-w-100 flex-1"
           />
-          <Select
-            options={FORMAT_OPTIONS.map((f) => ({ value: f.value, label: f.label }))}
-            value={production.format}
-            onChange={(format) => void update({ channelId, productionId, format })}
-            className="w-40"
-          />
-          <Input
-            type="number"
-            value={minutes === 0 ? '' : String(minutes)}
-            placeholder="min"
-            title="Target minutes"
-            onChange={(e) => {
-              const next = Math.max(0, Math.round(Number(e.target.value) || 0))
-              setMinutes(next)
-              autosave.patch({ targetMinutes: next })
-            }}
-            onBlur={() => void autosave.flush()}
-            className="w-20"
-          />
+          <div className="flex items-center gap-1.5">
+            <span className="whitespace-nowrap text-xs text-text-secondary">Minimum length</span>
+            <Input
+              type="number"
+              min={1}
+              value={minutes === 0 ? '' : String(minutes)}
+              title="Target spoken length in minutes — sets the word target in the draft prompt and the pacing meter"
+              onChange={(e) => {
+                const raw = e.target.value
+                if (raw === '') {
+                  setMinutes(0) // show empty while editing; blur restores the default
+                  return
+                }
+                const next = Math.max(1, Math.round(Number(raw) || 0))
+                setMinutes(next)
+                autosave.patch({ targetMinutes: next, format: minutesToFormat(next) })
+              }}
+              onBlur={() => {
+                if (minutes === 0) {
+                  setMinutes(DEFAULT_MINUTES)
+                  autosave.patch({
+                    targetMinutes: DEFAULT_MINUTES,
+                    format: minutesToFormat(DEFAULT_MINUTES),
+                  })
+                }
+                void autosave.flush()
+              }}
+              className="w-20"
+            />
+            <span className="whitespace-nowrap text-xs text-text-secondary">minutes</span>
+          </div>
           {autosave.status === 'error' && (
             <Badge variant="danger" title="A save failed — it will retry on the next change or flush">
               save failed, retrying
@@ -206,7 +232,7 @@ export function ProductionEditor({
         <Tabs flow tabs={tabDefs} active={tab} onChange={(id) => go(id as TabId)} />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-8 py-5">
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:px-8 md:py-5">
         {tab === 'package' && ctx && (
           <PackageTab
             channelId={channelId}
@@ -282,7 +308,7 @@ export function ProductionEditor({
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-border-subtle px-8 py-3">
+      <div className="flex items-center justify-between border-t border-border-subtle px-4 py-3 md:px-8">
         <Button
           variant="secondary"
           size="sm"
@@ -547,13 +573,15 @@ function InterviewTab({
 
   const draftOpts: DraftPromptOpts = useMemo(
     () => ({
-      format: production.format,
+      // Derive from LOCAL minutes, not the server doc — pre-change docs carry a
+      // stale format, and a just-edited value must not race the autosave write.
+      format: minutesToFormat(minutes > 0 ? minutes : DEFAULT_MINUTES),
       chosenTitle: mainTitle,
       descriptionAngle: production.concept.descriptionAngle,
       thumbnailBrief: thumbnailBrief(production.chosenThumbnail as never),
       brainDump: serializeBrainDump(interview),
       titles: production.chosenTitles,
-      targetMinutes: minutes,
+      targetMinutes: minutes > 0 ? minutes : DEFAULT_MINUTES,
     }),
     [production, interview, mainTitle, minutes],
   )
@@ -590,7 +618,18 @@ function InterviewTab({
   const setAnswer = (id: string, answer: string) =>
     setInterview(interview.map((b) => (b.id === id ? { ...b, a: answer } : b)))
 
-  const removeBlock = (id: string) => {
+  const { confirm, ConfirmUI } = useConfirm()
+  const removeBlock = async (id: string) => {
+    const block = interview.find((b) => b.id === id)
+    // Empty questions remove instantly; a written answer gets a confirm (CLAUDE.md rule).
+    if (block && block.a.trim()) {
+      const ok = await confirm({
+        title: 'Remove this question?',
+        message: 'Your written answer is discarded with it. This can’t be undone.',
+        confirmLabel: 'Remove',
+      })
+      if (!ok) return
+    }
     setInterview(interview.filter((b) => b.id !== id))
     flush()
   }
@@ -637,7 +676,7 @@ function InterviewTab({
                   <button onClick={() => move(block.id, 1)} className="text-text-muted hover:text-text-primary">
                     <ArrowDown size={13} />
                   </button>
-                  <button onClick={() => removeBlock(block.id)} className="text-text-muted hover:text-danger">
+                  <button onClick={() => void removeBlock(block.id)} className="text-text-muted hover:text-danger">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -659,6 +698,7 @@ function InterviewTab({
         <Plus size={13} />
         Add your own question
       </Button>
+      {ConfirmUI}
     </div>
   )
 }
@@ -709,9 +749,28 @@ function ScriptTab({
 
   const words = draft.split(/\s+/).filter(Boolean).length
   const spokenMinutes = words > 0 ? Math.round((words / ctx.wordsPerMinute) * 10) / 10 : 0
+  const targetMinutes = minutes > 0 ? minutes : DEFAULT_MINUTES
+  const floorWords = targetMinutes * ctx.wordsPerMinute
+
+  // Pre-flight material check: a script can't honestly be longer than the raw
+  // material supports. Warn before the prompt is even run (advisory, never blocks).
+  // Memoized — this component re-renders on every draft keystroke.
+  const dumpWords = useMemo(
+    () => serializeBrainDump(interview).split(/\s+/).filter(Boolean).length,
+    [interview],
+  )
+  const thinMaterial = dumpWords < floorWords * 0.5
 
   return (
     <div className="flex max-w-200 flex-col gap-4">
+      {thinMaterial && (
+        <div className="rounded-row border border-warning/40 bg-warning/8 px-4 py-2.5 text-sm text-text-secondary">
+          <span className="font-medium text-warning">Thin material:</span> your brain dump is ~
+          {dumpWords.toLocaleString()} words for a ≥{floorWords.toLocaleString()}-word script. The
+          draft will likely run short or flag [NEED MORE MATERIAL] — add stories and examples in
+          Interview, or pull notes in the Second Brain tab.
+        </div>
+      )}
       <MegapromptPanel
         what="the script"
         hint="The whole pipeline in one prompt: identity, persona, packaging, structure, and your brain dump."
@@ -740,19 +799,25 @@ function ScriptTab({
       <div className="flex items-center gap-3">
         <span className="text-xs text-text-muted">
           {words.toLocaleString()} words · ~{spokenMinutes} min at {ctx.wordsPerMinute} wpm
-          {minutes > 0 && ` · target ${minutes} min`}
+          {` · minimum ${targetMinutes} min`}
         </span>
-        {minutes > 0 && words > 0 && (
+        {words > 0 && (
+          // Floor semantics: under the minimum warns; anywhere above it is fine
+          // (mild note past +30%, matching the prompt's aim range).
           <Badge
             variant={
-              Math.abs(spokenMinutes - minutes) <= minutes * 0.15
-                ? 'success'
-                : spokenMinutes > minutes
-                  ? 'warning'
-                  : 'info'
+              spokenMinutes < targetMinutes
+                ? 'warning'
+                : spokenMinutes > targetMinutes * 1.3
+                  ? 'info'
+                  : 'success'
             }
           >
-            {spokenMinutes > minutes * 1.15 ? 'long' : spokenMinutes < minutes * 0.85 ? 'short' : 'on pace'}
+            {spokenMinutes < targetMinutes
+              ? 'under minimum'
+              : spokenMinutes > targetMinutes * 1.3
+                ? 'running long'
+                : 'on target'}
           </Badge>
         )}
         <div className="flex-1" />

@@ -81,7 +81,7 @@ function ProductionsPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void submit()}
-            className="w-64"
+            className="w-64 max-md:w-48"
           />
           <Button loading={creating} disabled={!name.trim()} onClick={() => void submit()}>
             <Plus size={14} />

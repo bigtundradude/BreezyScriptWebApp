@@ -80,13 +80,13 @@ function FoundationAssetPage() {
   const createAsset = useMutation(api.foundationAssets.create)
 
   if (!config) {
-    return <div className="px-8 py-7 text-sm text-danger">Unknown foundation type.</div>
+    return <div className="px-4 py-5 md:px-8 md:py-7 text-sm text-danger">Unknown foundation type.</div>
   }
 
   const selectedAsset = (assets ?? []).find((a) => a._id === selected) ?? null
 
   return (
-    <div className="flex h-full flex-col gap-5 px-8 py-7">
+    <div className="flex h-full flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">{config.title}</h2>
@@ -121,13 +121,13 @@ function FoundationAssetPage() {
           }}
         />
       ) : (
-        <div className="flex min-h-0 flex-1 gap-5">
-          <div className="flex w-56 shrink-0 flex-col gap-1.5 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 gap-5 max-md:flex-col">
+          <div className="flex w-56 shrink-0 flex-col gap-1.5 overflow-y-auto max-md:w-full max-md:flex-row max-md:overflow-x-auto max-md:overflow-y-visible">
             {assets.map((asset) => (
               <button
                 key={asset._id}
                 onClick={() => void navigate({ search: { selected: asset._id } })}
-                className={`flex items-center gap-2 rounded-row border px-3 py-2.5 text-left text-sm transition-colors ${
+                className={`flex items-center gap-2 rounded-row border px-3 py-2.5 text-left text-sm transition-colors max-md:shrink-0 max-md:max-w-48 ${
                   asset._id === selectedAsset?._id
                     ? 'border-primary bg-surface text-text-primary'
                     : 'border-border bg-surface text-text-secondary hover:bg-surface-raised'

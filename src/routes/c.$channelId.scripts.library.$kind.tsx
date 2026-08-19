@@ -77,7 +77,7 @@ function LibraryPage() {
   const [descName, setDescName] = useState('')
   const [descBody, setDescBody] = useState('')
 
-  if (!config) return <div className="px-8 py-7 text-sm text-danger">Unknown library kind.</div>
+  if (!config) return <div className="px-4 py-5 md:px-8 md:py-7 text-sm text-danger">Unknown library kind.</div>
   const loading = items === undefined
 
   const installPreset = async () => {
@@ -100,7 +100,7 @@ function LibraryPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-8 py-7">
+    <div className="flex flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div>
         <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">{config.title}</h2>
         <p className="mt-0.5 text-sm text-text-secondary">{config.description}</p>

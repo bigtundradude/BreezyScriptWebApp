@@ -29,7 +29,7 @@ function ReviewPage() {
     )
   }
   if (production === null) {
-    return <div className="px-8 py-7 text-sm text-danger">Production not found.</div>
+    return <div className="px-4 py-5 md:px-8 md:py-7 text-sm text-danger">Production not found.</div>
   }
 
   const mainTitle = production.chosenTitles.find((t) => t.main)?.text || production.name
@@ -43,7 +43,7 @@ function ReviewPage() {
   const tagsText = meta.tags.join(', ')
 
   return (
-    <div className="mx-auto flex max-w-200 flex-col gap-5 px-8 py-7">
+    <div className="mx-auto flex max-w-200 flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => void navigate({ to: `/c/${channelId}/scripts/build` })}

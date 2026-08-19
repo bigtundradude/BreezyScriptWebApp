@@ -102,6 +102,15 @@ export function NoteEditor({
     },
     [bufferKey, title, body, kind, tags, note?.updatedAt],
   )
+  // Cancel any pending buffer tick AND its payload — must run before clearDraft
+  // in save/delete, or the 500 ms timer re-creates the buffer that was just cleared.
+  const cancelBuffer = () => {
+    if (bufferTimer.current) {
+      clearTimeout(bufferTimer.current)
+      bufferTimer.current = null
+    }
+    latestDraft.current = null
+  }
   useEffect(() => () => {
     // Unmount with a pending buffer tick: write synchronously — this is exactly
     // the "left before the debounce fired" case the buffer exists for.
@@ -149,6 +158,7 @@ export function NoteEditor({
           await update({ channelId, noteId, title, body, kind, tags })
         }
         markDirty(false)
+        cancelBuffer()
         clearDraft(bufferKey)
         if (!stay || isNew) backToList()
       } catch (e) {
@@ -181,7 +191,7 @@ export function NoteEditor({
   }
   if (!isNew && note === null) {
     return (
-      <div className="mx-auto max-w-190 px-8 py-7">
+      <div className="mx-auto max-w-190 px-4 py-5 md:px-8 md:py-7">
         <div className="rounded-row border border-danger px-4 py-3 text-sm text-danger">
           Note not found. It may have been deleted.
         </div>
@@ -193,7 +203,7 @@ export function NoteEditor({
   }
 
   return (
-    <div className="mx-auto flex max-w-190 flex-col gap-4 px-8 py-7">
+    <div className="mx-auto flex max-w-190 flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
       <div className="flex items-center gap-3">
         <button
           onClick={backToList}
@@ -264,7 +274,7 @@ export function NoteEditor({
         value={title}
         onChange={(e) => editTitle(e.target.value)}
       />
-      <div className="flex gap-3">
+      <div className="flex gap-3 max-md:flex-col">
         <Select<NoteKind>
           label="Kind"
           options={KIND_OPTIONS}
@@ -312,6 +322,7 @@ export function NoteEditor({
           void remove({ channelId, noteId })
             .then(() => {
               markDirty(false)
+              cancelBuffer()
               clearDraft(bufferKey)
               backToList()
             })

@@ -67,5 +67,7 @@ export function toDraftMegaprompt(system: string, user: string): string {
   return `${system}\n\n${RULE}\n\n${user}\n\n${RULE}\n` +
     `OUTPUT FORMAT. Follow exactly:\n` +
     `Reply with ONLY the finished script in Markdown. No preamble, no commentary, ` +
-    `no code fences. Just the script itself, starting with the first spoken line.`
+    `no code fences. Just the script itself, starting with the first spoken line. ` +
+    `The only permitted non-script text is inline [GAP: ...] markers and, when the ` +
+    `material cannot support the target length, a trailing [NEED MORE MATERIAL] block.`
 }

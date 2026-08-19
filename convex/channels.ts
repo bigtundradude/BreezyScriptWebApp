@@ -67,12 +67,22 @@ export const remove = mutation({
     const channel = await ctx.db.get(channelId)
     if (!channel) return
 
-    for (const table of ['notes', 'ideas', 'titleShapes', 'titleTemplates', 'feedback'] as const) {
+    for (const table of ['notes', 'ideas', 'bankIdeas', 'bankTitleCandidates', 'bankQuestions', 'bankSnippets', 'bankStructures', 'bankDrafts', 'bankRefinementDrafts', 'bankReplacements', 'bankWordPrefs', 'titleShapes', 'titleTemplates', 'feedback'] as const) {
       const docs = await ctx.db
         .query(table)
         .withIndex('by_channel', (q) => q.eq('channelId', channelId))
         .collect()
       for (const doc of docs) await ctx.db.delete(doc._id)
+    }
+
+    // Thumbnails also own storage files.
+    const thumbnails = await ctx.db
+      .query('bankThumbnails')
+      .withIndex('by_channel', (q) => q.eq('channelId', channelId))
+      .collect()
+    for (const thumbnail of thumbnails) {
+      await ctx.storage.delete(thumbnail.storageId)
+      await ctx.db.delete(thumbnail._id)
     }
 
     const productions = await ctx.db

@@ -7,6 +7,7 @@ import type { Doc, Id } from '../../convex/_generated/dataModel'
 import { ListPage } from '@/components/layout/ListPage'
 import { ListCard } from '@/components/layout/ListCard'
 import { Badge, Button, EmptyState, Input, MegapromptPanel, Textarea } from '@/components/ui'
+import { useConfirm } from '@/components/shared/useConfirm'
 import { usePromptContext } from '@/features/scripts/usePromptContext'
 import {
   composeConceptPrompt,
@@ -43,6 +44,16 @@ function IdeasPage() {
   const [steerNotes, setSteerNotes] = useState('')
   const [applyMessage, setApplyMessage] = useState('')
   const [showDone, setShowDone] = useState(false)
+  const { confirm, ConfirmUI } = useConfirm()
+
+  const confirmDelete = async (idea: Doc<'ideas'>) => {
+    const ok = await confirm({
+      title: `Delete “${idea.title}”?`,
+      message: 'The idea is permanently removed from the backlog.',
+      confirmLabel: 'Delete',
+    })
+    if (ok) await remove({ channelId: cid, ideaId: idea._id })
+  }
 
   const submit = async () => {
     if (!title.trim()) return
@@ -87,7 +98,7 @@ function IdeasPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void submit()}
-            className="w-72"
+            className="w-72 max-md:w-48"
           />
           <Button disabled={!title.trim()} onClick={() => void submit()}>
             <Plus size={14} />
@@ -164,7 +175,7 @@ function IdeasPage() {
                 </button>
               )}
               <button
-                onClick={() => void remove({ channelId: cid, ideaId: idea._id })}
+                onClick={() => void confirmDelete(idea)}
                 className="flex items-center gap-1 text-2xs text-text-muted hover:text-danger"
               >
                 <Trash2 size={11} />
@@ -231,6 +242,7 @@ function IdeasPage() {
           }}
         />
       </div>
+      {ConfirmUI}
     </ListPage>
   )
 }

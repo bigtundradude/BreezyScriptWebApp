@@ -351,11 +351,15 @@ function lengthBlock(opts: DraftPromptOpts, wpmIn: number): string {
   const mins = opts.targetMinutes ?? 0
   if (!mins || mins <= 0) return ''
   const wpm = wpmIn && wpmIn > 0 ? wpmIn : 150
-  const mid = mins * wpm
-  const low = Math.round((mid * 0.85) / 50) * 50
-  const high = Math.round((mid * 1.15) / 50) * 50
-  return `\nTARGET LENGTH: ~${mins} min spoken (~${low.toLocaleString()} to ${high.toLocaleString()} words). ` +
-    'Pace the whole script to land in this range. Expand or compress sections to fit, never pad or filler.\n'
+  // Deliberate deviation from the desktop prompt (owner decision 2026-08-14):
+  // the minutes field is a MINIMUM, so the floor is the anchored bound and the
+  // range extends upward (+30%). Length must be expanded with substance, never
+  // filler — models follow "how to be longer" far better than a bare number.
+  const floor = Math.round((mins * wpm) / 50) * 50
+  const high = Math.round((mins * wpm * 1.3) / 50) * 50
+  return `\nTARGET LENGTH: at least ~${floor.toLocaleString()} words (~${mins} min spoken at the creator's pace); aim for ${floor.toLocaleString()} to ${high.toLocaleString()} words. ` +
+    'If you land short, expand by going DEEPER on the brain-dump material: more specifics, more story detail, more examples. ' +
+    'Never pad with filler, throat-clearing, or restatement.\n'
 }
 
 // Everything in the draft prompt EXCEPT the brain dump. Shared by
@@ -366,9 +370,13 @@ function draftFixedParts(ctx: PromptContext, opts: DraftPromptOpts): { system: s
   const persona = ctx.personaSnippet
   const aud     = ctx.audienceSnippet
   const fw      = ctx.frameworkSnippet
-  // Output budget scales with the chosen format so input+output fits num_ctx.
+  // Output budget scales with the chosen format so input+output fits num_ctx —
+  // and with floor length semantics, never below what the requested minimum
+  // (+30% aim, ~1.4 tokens/word) actually needs.
   const OUT_BY_FORMAT: Record<string, number> = { shorts: 800, medium: 2200, long: 3600, podcast: 4096 }
-  const maxTokens = OUT_BY_FORMAT[opts.format] ?? 2600
+  const wpm = ctx.wordsPerMinute > 0 ? ctx.wordsPerMinute : 150
+  const lengthTokens = Math.ceil((opts.targetMinutes ?? 0) * wpm * 1.3 * 1.4)
+  const maxTokens = Math.max(OUT_BY_FORMAT[opts.format] ?? 2600, lengthTokens)
   const system =
     'You are a script blueprint drafter for BreezyScriptPro. Turn the creator\'s ' +
     'BRAIN DUMP into a structured, retention-optimized first draft. This is ' +
@@ -376,12 +384,20 @@ function draftFixedParts(ctx: PromptContext, opts: DraftPromptOpts): { system: s
     'claims, and stories. Never fabricate facts the creator didn\'t provide. ' +
     'Open with a strong hook you write from the brain dump and the title\'s ' +
     'promise: validate the click in the first lines, set the stakes, and ' +
-    'transition into the video without spoiling the payoff. Deliver the ' +
+    'transition into the video without spoiling the payoff. Never open with ' +
+    'throat-clearing or a table of contents ("in this video we\'re going to...") — ' +
+    'start delivering from the first line. Never recap what a section just said ' +
+    'and never preview what the next section will say: every paragraph must add ' +
+    'new substance or advance the argument. Deliver the ' +
     'channel\'s framework and honor its ' +
     'non-negotiables. Write in the creator\'s voice and the audience\'s awareness ' +
     'level. Keep the central loop open. Never spoil the title/thumbnail answer ' +
     'before its planned payoff. Where the brain dump is too thin for a needed ' +
-    'section, write a clearly-marked [GAP: …] note rather than inventing. Output ' +
+    'section, write a clearly-marked [GAP: …] note rather than inventing. If the ' +
+    'brain dump cannot honestly support the TARGET LENGTH, do not stretch: write ' +
+    'the best shorter script, then end with a clearly-marked [NEED MORE MATERIAL] ' +
+    'block listing the SPECIFIC stories, examples, numbers, or details the creator ' +
+    'should add to reach length. Output ' +
     'clean markdown with section headings; the script only. ' + SCRIPT_PROSE_STYLE
   const library = opts.structureNotes ?? renderLibraryContext(ctx)
   // Everything except the brain dump, assembled first so the dump can be budgeted

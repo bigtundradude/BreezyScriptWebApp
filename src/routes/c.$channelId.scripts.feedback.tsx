@@ -50,7 +50,7 @@ function FeedbackPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-5 px-8 py-7">
+    <div className="flex h-full flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div>
         <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Feedback</h2>
         <p className="mt-0.5 text-sm text-text-secondary">
@@ -64,8 +64,8 @@ function FeedbackPage() {
           <Spinner size={14} /> Loading…
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 gap-5">
-          <div className="flex w-64 shrink-0 flex-col gap-2 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 gap-5 max-md:flex-col">
+          <div className="flex w-64 shrink-0 flex-col gap-2 overflow-y-auto max-md:w-full max-md:max-h-56">
             <div className="flex gap-1.5">
               <Input
                 placeholder="Video title"

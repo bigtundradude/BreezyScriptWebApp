@@ -21,7 +21,7 @@ function SettingsPage() {
     <div className="flex h-dvh flex-col overflow-hidden bg-bg">
       <Header toolName="Settings" />
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-8 py-7">
+        <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
           <div>
             <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Channels</h2>
             <p className="mt-0.5 text-sm text-text-secondary">
@@ -106,7 +106,7 @@ function ChannelCard({ channel }: { channel: Doc<'channels'> }) {
   return (
     <Card>
       <div className="flex flex-col gap-3.5">
-        <div className="flex gap-3">
+        <div className="flex gap-3 max-md:flex-col">
           <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} className="flex-1" />
           <Input
             label="Description"

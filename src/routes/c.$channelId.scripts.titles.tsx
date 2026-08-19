@@ -17,6 +17,7 @@ import {
   Spinner,
   Textarea,
 } from '@/components/ui'
+import { useConfirm } from '@/components/shared/useConfirm'
 import {
   composeTitleMinePrompt,
   parseJsonLenient,
@@ -44,7 +45,7 @@ function TitlesPage() {
 
   if (shapes === undefined || templates === undefined) {
     return (
-      <div className="flex items-center gap-2 px-8 py-7 text-sm text-text-muted">
+      <div className="flex items-center gap-2 px-4 py-5 md:px-8 md:py-7 text-sm text-text-muted">
         <Spinner size={14} /> Loading…
       </div>
     )
@@ -82,7 +83,7 @@ function ShapeGrid({
     void navigate({ to: '.', search: { shape: id } })
 
   return (
-    <div className="flex flex-col gap-5 px-8 py-7">
+    <div className="flex flex-col gap-5 px-4 py-5 md:px-8 md:py-7">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Title shapes</h2>
@@ -239,6 +240,16 @@ function ShapeDetail({
   const removeShape = useMutation(api.titles.removeShape)
   const [newPattern, setNewPattern] = useState('')
   const [deletingShape, setDeletingShape] = useState(false)
+  const { confirm, ConfirmUI } = useConfirm()
+
+  const confirmDeleteTemplate = async (template: Doc<'titleTemplates'>) => {
+    const ok = await confirm({
+      title: 'Delete this template?',
+      message: `“${template.pattern}” is permanently removed${template.sortBoost !== 0 ? ', including its performance boost' : ''}.`,
+      confirmLabel: 'Delete',
+    })
+    if (ok) await removeTemplate({ channelId, templateId: template._id })
+  }
 
   const builtin: BuiltinTitleShape | undefined = BUILTIN_TITLE_SHAPES.find((s) => s.id === shapeId)
   const custom = customShapes.find((s) => s._id === shapeId)
@@ -255,7 +266,7 @@ function ShapeDetail({
   ]
 
   return (
-    <div className="flex flex-col gap-4 px-8 py-7">
+    <div className="flex flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
       <div className="flex items-center gap-3">
         <button
           onClick={() => void navigate({ to: '.', search: { shape: undefined } })}
@@ -354,7 +365,7 @@ function ShapeDetail({
           shapeTemplates.map((template) => (
             <div
               key={template._id}
-              className="flex items-center gap-3 rounded-row border border-border bg-surface px-4 py-2.5"
+              className="flex flex-wrap items-center gap-3 rounded-row border border-border bg-surface px-4 py-2.5"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -382,7 +393,7 @@ function ShapeDetail({
                 />
               )}
               <button
-                onClick={() => void removeTemplate({ channelId, templateId: template._id })}
+                onClick={() => void confirmDeleteTemplate(template)}
                 className="text-text-muted transition-colors hover:text-danger"
               >
                 <Trash2 size={13} />
@@ -434,6 +445,7 @@ function ShapeDetail({
         message="Its templates are kept and move to Unsorted."
         confirmLabel="Delete shape"
       />
+      {ConfirmUI}
     </div>
   )
 }
