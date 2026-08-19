@@ -5,6 +5,7 @@ import { Button } from '@/components/ui'
 export function SignIn() {
   const { signIn } = useAuthActions()
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   return (
     <div className="flex min-h-dvh items-center justify-center bg-bg">
       <div className="flex w-90 max-w-[calc(100vw-32px)] flex-col items-center gap-5 rounded-panel border border-border bg-surface p-8">
@@ -17,12 +18,19 @@ export function SignIn() {
           loading={busy}
           onClick={() => {
             setBusy(true)
-            void signIn('google').catch(() => setBusy(false))
+            setError(null)
+            // Surface failures instead of swallowing them — a silent catch
+            // here looks like an endless spinner (deploy debugging, 2026-08-19).
+            void signIn('google').catch((e: unknown) => {
+              setBusy(false)
+              setError(e instanceof Error ? e.message : 'Sign-in failed. Try again.')
+            })
           }}
           className="w-full"
         >
           Continue with Google
         </Button>
+        {error && <p className="text-center text-xs text-danger">{error}</p>}
       </div>
     </div>
   )
