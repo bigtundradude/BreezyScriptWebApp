@@ -1,8 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { ArrowRight, Brain, Clapperboard, Link2, Settings, type LucideIcon } from 'lucide-react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 
 export const Route = createFileRoute('/c/$channelId/')({
   component: ChannelHome,
@@ -47,15 +44,12 @@ const TOOLS: Array<{
 
 function ChannelHome() {
   const { channelId } = Route.useParams()
-  const channel = useQuery(api.channels.get, { channelId: channelId as Id<'channels'> })
 
   return (
-    <div className="mx-auto flex w-full max-w-190 flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
-      <div>
-        <h1 className="text-[28px] font-extrabold tracking-[-0.04em] text-text-primary">
-          {channel?.name ?? ' '}
-        </h1>
-      </div>
+    <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-8">
+      <h1 className="text-center text-xl font-extrabold tracking-[-0.03em] text-text-primary">
+        BreezyScript
+      </h1>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         {TOOLS.map((tool) => (
           <Link
