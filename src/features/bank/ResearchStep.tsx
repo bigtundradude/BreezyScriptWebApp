@@ -5,6 +5,7 @@ import { Check, ChevronLeft, Plus, StickyNote, X } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Badge, Button, ConfirmDialog, SearchInput, Spinner, Textarea } from '@/components/ui'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { GrowInput } from '@/features/bank/GrowInput'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
 
@@ -43,10 +44,10 @@ export function ResearchStep({
   const [readying, setReadying] = useState(false)
   const [error, setError] = useState('')
 
-  // Second Brain picker state (explicit-submit search, decision #9).
+  // Second Brain picker state (debounced live search, owner 2026-08-18).
   const [pickerOpen, setPickerOpen] = useState(false)
   const [searchInput, setSearchInput] = useState('')
-  const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined)
+  const searchTerm = useDebouncedValue(searchInput.trim(), 250) || undefined
   const pickerNotes = useQuery(
     api.notes.list,
     pickerOpen ? { channelId, search: searchTerm } : 'skip',
@@ -223,27 +224,12 @@ export function ResearchStep({
         )}
         {pickerOpen && (
           <div className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-3">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                setSearchTerm(searchInput.trim() || undefined)
-              }}
-              className="flex gap-2"
-            >
-              <SearchInput
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onClear={() => {
-                  setSearchInput('')
-                  setSearchTerm(undefined)
-                }}
-                placeholder="Search notes… (press Enter)"
-                className="flex-1"
-              />
-              <Button type="submit" variant="secondary" size="sm">
-                Search
-              </Button>
-            </form>
+            <SearchInput
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => setSearchInput('')}
+              placeholder="Search notes…"
+            />
             {pickerNotes === undefined ? (
               <div className="flex items-center gap-2 py-2 text-sm text-text-muted">
                 <Spinner size={13} /> Loading notes…

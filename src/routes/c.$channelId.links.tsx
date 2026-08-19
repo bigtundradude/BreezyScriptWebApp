@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Link2,
   Plus,
-  Search as SearchIcon,
   SlidersHorizontal,
 } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
@@ -16,6 +15,7 @@ import { ListPage } from '@/components/layout/ListPage'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
 import { useConfirm } from '@/components/shared/useConfirm'
 import { CopyAction } from '@/features/links/CopyAction'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { LinkEditor } from '@/features/links/LinkEditor'
 
 // Affiliate Links (docs/affiliate-links-plan.md): searchable by title and
@@ -45,8 +45,16 @@ function LinksPage() {
   const tags = useQuery(api.affiliateLinks.listTags, { channelId: channelId as Id<'channels'> })
   const ensureDefaults = useMutation(api.affiliateLinks.ensureDefaultTags)
 
-  // Explicit-submit search (decision #9); filters hide behind the toggle.
+  // Debounced live search (owner, 2026-08-18); filters hide behind the toggle.
   const [input, setInput] = useState(q ?? '')
+  const debouncedQ = useDebouncedValue(input.trim(), 250)
+  useEffect(() => {
+    if (debouncedQ === (q ?? '')) return
+    void navigate({
+      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
+      replace: true,
+    })
+  }, [debouncedQ, q, navigate])
   const [showFilters, setShowFilters] = useState(Boolean(tag))
   const [editing, setEditing] = useState<'new' | Id<'affiliateLinks'> | null>(null)
 
@@ -57,8 +65,6 @@ function LinksPage() {
     }
   }, [tags, ensureDefaults, channelId])
 
-  const submit = (value: string) =>
-    void navigate({ search: (prev) => ({ ...prev, q: value.trim() || undefined }) })
   const setTagFilter = (value: string) =>
     void navigate({ search: (prev) => ({ ...prev, tag: value === 'all' ? undefined : value }) })
 
@@ -116,29 +122,14 @@ function LinksPage() {
             <ChevronLeft size={15} />
             Channel home
           </button>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              submit(input)
-            }}
-            className="flex gap-2"
-          >
+          <div className="flex gap-2">
             <SearchInput
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onClear={() => {
-                setInput('')
-                submit('')
-              }}
-              placeholder="Search links… (press Enter)"
+              onClear={() => setInput('')}
+              placeholder="Search links…"
               className="flex-1"
             />
-            <Button type="submit" variant="secondary" className="max-md:hidden">
-              Search
-            </Button>
-            <Button type="submit" variant="secondary" iconOnly aria-label="Search" className="md:hidden">
-              <SearchIcon size={15} />
-            </Button>
             <Button
               type="button"
               variant={tag ? 'primary' : showFilters ? 'secondary' : 'ghost'}
@@ -153,7 +144,7 @@ function LinksPage() {
               <Plus size={14} />
               New link
             </Button>
-          </form>
+          </div>
           {showFilters && (
             <div className="flex flex-wrap items-center gap-2.5">
               <Select

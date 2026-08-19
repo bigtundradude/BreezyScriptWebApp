@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ChevronLeft, Lightbulb, Plus, Search as SearchIcon, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, Lightbulb, Plus, SlidersHorizontal } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ListPage } from '@/components/layout/ListPage'
 import { ListCard } from '@/components/layout/ListCard'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { RatingBadge } from '@/features/bank/StarRating'
 import { BANK_STATUSES, STATUS_BADGE, STATUS_OPTIONS, type BankIdeaStatus } from '@/features/bank/lib'
 import { formatDate } from '@/lib/utils'
@@ -41,9 +42,18 @@ function BankIdeasPage() {
   const { q, r, s } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
 
-  // Explicit-submit search (decision #9): typing edits local state; Enter or the
-  // Search button commits it to the URL, which is what actually queries.
+  // Debounced live search (owner, 2026-08-18): typing filters after a short
+  // pause; clearing the box resets. The URL still carries the term (replace,
+  // so keystrokes don't stack history).
   const [input, setInput] = useState(q ?? '')
+  const debouncedQ = useDebouncedValue(input.trim(), 250)
+  useEffect(() => {
+    if (debouncedQ === (q ?? '')) return
+    void navigate({
+      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
+      replace: true,
+    })
+  }, [debouncedQ, q, navigate])
   // Filters hide behind a toggle to save vertical space on the phone; start
   // open when the URL already carries an active filter.
   const [showFilters, setShowFilters] = useState(Boolean(r || s))
@@ -53,8 +63,6 @@ function BankIdeasPage() {
     search: q,
   })
 
-  const submit = (value: string) =>
-    void navigate({ search: (prev) => ({ ...prev, q: value.trim() || undefined }) })
   const setRatingFilter = (value: RatingFilter | 'all') =>
     void navigate({ search: (prev) => ({ ...prev, r: value === 'all' ? undefined : value }) })
   const setStatusFilter = (value: BankIdeaStatus | 'all') =>
@@ -84,35 +92,14 @@ function BankIdeasPage() {
             <ChevronLeft size={15} />
             Channel home
           </button>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              submit(input)
-            }}
-            className="flex gap-2"
-          >
+          <div className="flex gap-2">
             <SearchInput
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onClear={() => {
-                setInput('')
-                submit('')
-              }}
-              placeholder="Search ideas… (press Enter)"
+              onClear={() => setInput('')}
+              placeholder="Search ideas…"
               className="flex-1"
             />
-            <Button type="submit" variant="secondary" className="max-md:hidden">
-              Search
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              iconOnly
-              aria-label="Search"
-              className="md:hidden"
-            >
-              <SearchIcon size={15} />
-            </Button>
             <Button
               type="button"
               variant={r || s ? 'primary' : showFilters ? 'secondary' : 'ghost'}
@@ -131,7 +118,7 @@ function BankIdeasPage() {
               <Plus size={14} />
               New idea
             </Button>
-          </form>
+          </div>
           {showFilters && (
             <div className="flex flex-wrap items-center gap-2.5">
               <Select<BankIdeaStatus | 'all'>

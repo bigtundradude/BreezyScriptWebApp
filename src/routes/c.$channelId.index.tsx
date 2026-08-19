@@ -55,7 +55,6 @@ function ChannelHome() {
         <h1 className="text-[28px] font-extrabold tracking-[-0.04em] text-text-primary">
           {channel?.name ?? ' '}
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">Pick a tool to get to work.</p>
       </div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         {TOOLS.map((tool) => (

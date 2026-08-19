@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ChevronLeft, Plus, Search as SearchIcon, SlidersHorizontal, StickyNote } from 'lucide-react'
+import { ChevronLeft, Plus, SlidersHorizontal, StickyNote } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { ListPage } from '@/components/layout/ListPage'
 import { ListCard } from '@/components/layout/ListCard'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { KIND_OPTIONS, kindLabel, sourceLabel, type NoteKind, NOTE_KINDS } from '@/features/brain/lib'
 import { formatDate } from '@/lib/utils'
 
@@ -28,9 +29,17 @@ function NotesPage() {
   const { q, kind } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
 
-  // Explicit-submit search (decision #9): typing edits local state; Enter or the
-  // Search button commits it to the URL, which is what actually queries.
+  // Debounced live search (owner, 2026-08-18): typing filters after a short
+  // pause; clearing the box resets.
   const [input, setInput] = useState(q ?? '')
+  const debouncedQ = useDebouncedValue(input.trim(), 250)
+  useEffect(() => {
+    if (debouncedQ === (q ?? '')) return
+    void navigate({
+      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
+      replace: true,
+    })
+  }, [debouncedQ, q, navigate])
   // Filters hide behind a toggle to save vertical space on the phone; start
   // open when the URL already carries an active filter.
   const [showFilters, setShowFilters] = useState(Boolean(kind))
@@ -41,8 +50,6 @@ function NotesPage() {
     kind,
   })
 
-  const submit = (value: string) =>
-    void navigate({ search: (prev) => ({ ...prev, q: value.trim() || undefined }) })
   const setKind = (value: NoteKind | 'all') =>
     void navigate({ search: (prev) => ({ ...prev, kind: value === 'all' ? undefined : value }) })
 
@@ -61,35 +68,14 @@ function NotesPage() {
             <ChevronLeft size={15} />
             Channel home
           </button>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              submit(input)
-            }}
-            className="flex gap-2"
-          >
+          <div className="flex gap-2">
             <SearchInput
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onClear={() => {
-                setInput('')
-                submit('')
-              }}
-              placeholder="Search notes… (press Enter)"
+              onClear={() => setInput('')}
+              placeholder="Search notes…"
               className="flex-1"
             />
-            <Button type="submit" variant="secondary" className="max-md:hidden">
-              Search
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              iconOnly
-              aria-label="Search"
-              className="md:hidden"
-            >
-              <SearchIcon size={15} />
-            </Button>
             <Button
               type="button"
               variant={kind ? 'primary' : showFilters ? 'secondary' : 'ghost'}
@@ -108,7 +94,7 @@ function NotesPage() {
               <Plus size={14} />
               New note
             </Button>
-          </form>
+          </div>
           {showFilters && (
             <div className="flex flex-wrap items-center gap-2.5">
               <Select<NoteKind | 'all'>
