@@ -55,6 +55,15 @@ id-addressed docs. `channels.remove` adds both tables to its cascade loop.
   rename inline, add field, drag-free reorder (up/down buttons, tap-friendly), delete
   behind the confirm dialog and blocked while referenced.
 
+## Mobile first (owner, 2026-08-18: this tool is used mostly from a phone)
+
+The copy actions are the whole point of this tool on a phone, so they get the priority
+treatment: every screen usable at 390px, both copy buttons ≥44px and reachable without
+horizontal scroll, URL rows stack and truncate the URL text rather than clip the
+buttons, the tag filter and editor selects are native touch-friendly selects, create is
+the FAB, and nothing depends on hover. Verify at 390px and under touch before calling
+any screen done.
+
 ## Behavior details
 
 - Search is explicit-submit into the URL (`?q=`), matching the decided pattern, and
