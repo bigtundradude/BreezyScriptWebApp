@@ -5,18 +5,12 @@ import { ChevronLeft } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '@/components/ui'
-import { GrowInput } from '@/features/bank/GrowInput'
 import { RatingPicker } from '@/features/bank/StarRating'
 import { STATUS_OPTIONS, type BankIdeaStatus } from '@/features/bank/lib'
+import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
 
-const TITLE_SLOTS = 3
-
-function padTitles(titles: string[]) {
-  return Array.from({ length: TITLE_SLOTS }, (_, i) => titles[i] ?? '')
-}
-
-// Create + edit form for one Idea Bank idea. Same layout in both modes; the
-// list is a separate route, so it is never visible behind this view.
+// Workflow step 1 — the idea itself (title, description, status, rating).
+// Potential titles live in step 2 (TitlesStep). Doubles as the create form.
 export function BankIdeaEditor({
   channelId,
   ideaId,
@@ -27,15 +21,15 @@ export function BankIdeaEditor({
   const isNew = ideaId === undefined
   const idea = useQuery(api.ideaBank.get, isNew ? 'skip' : { channelId, ideaId })
   const create = useMutation(api.ideaBank.create)
-  const update = useMutation(api.ideaBank.update)
+  const updateIdea = useMutation(api.ideaBank.updateIdea)
+  const markStepReady = useMutation(api.ideaBank.markStepReady)
   const remove = useMutation(api.ideaBank.remove)
   const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [potentialTitles, setPotentialTitles] = useState<string[]>(padTitles([]))
-  const [rating, setRating] = useState(0)
   const [status, setStatus] = useState<BankIdeaStatus>('new')
+  const [rating, setRating] = useState(0)
   const [dirty, setDirty] = useState(false)
   // The router blocker reads dirtiness synchronously at navigate time — state
   // updates land too late after save/delete, so mirror it in a ref.
@@ -46,6 +40,7 @@ export function BankIdeaEditor({
   }
   const [loaded, setLoaded] = useState(isNew)
   const [saving, setSaving] = useState(false)
+  const [readying, setReadying] = useState(false)
   const [error, setError] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -56,9 +51,8 @@ export function BankIdeaEditor({
     if (isNew || loaded || !idea) return
     setTitle(idea.title)
     setDescription(idea.description)
-    setPotentialTitles(padTitles(idea.potentialTitles))
-    setRating(idea.rating)
     setStatus(idea.status)
+    setRating(idea.rating)
     setLoaded(true)
   }, [idea, isNew, loaded])
 
@@ -68,9 +62,13 @@ export function BankIdeaEditor({
     enableBeforeUnload: () => dirtyRef.current,
   })
 
-  const backToList = useCallback(
-    () => void navigate({ to: `/c/${channelId}/bank` }),
-    [navigate, channelId],
+  const stepReady = Boolean(idea?.readySteps?.includes('idea'))
+  // Done goes to the overview once the workflow exists, otherwise back to the list.
+  const doneTarget = stepReady ? `/c/${channelId}/bank/${ideaId}` : `/c/${channelId}/bank`
+  const doneLabel = stepReady ? 'Idea' : 'Scripts Pro'
+  const goDone = useCallback(
+    () => void navigate({ to: doneTarget }),
+    [navigate, doneTarget],
   )
 
   const save = useCallback(
@@ -86,22 +84,38 @@ export function BankIdeaEditor({
       setSaving(true)
       setError('')
       try {
-        const fields = { channelId, title, description, potentialTitles, rating, status }
         if (isNew) {
-          await create(fields)
-        } else {
-          await update({ ...fields, ideaId })
+          const newId = await create({ channelId, title, description, rating, status })
+          markDirty(false)
+          // Land in the saved step-1 view (clean state) so Ready is one tap away.
+          void navigate({ to: `/c/${channelId}/bank/${newId}/idea`, replace: true })
+          return
         }
+        await updateIdea({ channelId, ideaId, title, description, rating, status })
         markDirty(false)
-        if (!stay || isNew) backToList()
+        if (!stay) goDone()
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
       } finally {
         setSaving(false)
       }
     },
-    [title, description, potentialTitles, rating, status, isNew, channelId, ideaId, create, update, backToList],
+    [title, description, rating, status, isNew, channelId, ideaId, create, updateIdea, navigate, goDone],
   )
+
+  const ready = async () => {
+    if (isNew || !ideaId) return
+    setReadying(true)
+    setError('')
+    try {
+      await markStepReady({ channelId, ideaId, step: 'idea' })
+      void navigate({ to: `/c/${channelId}/bank/${ideaId}` })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
+    } finally {
+      setReadying(false)
+    }
+  }
 
   // Cmd/Ctrl+S saves and stays (decision #5).
   useEffect(() => {
@@ -124,12 +138,17 @@ export function BankIdeaEditor({
   }
   if (!isNew && idea === null) {
     return (
-      <div className="mx-auto max-w-190 px-4 py-5 md:px-8 md:py-7">
+      <div className="mx-auto max-w-190 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
         <div className="rounded-row border border-danger px-4 py-3 text-sm text-danger">
           Idea not found. It may have been deleted.
         </div>
-        <Button variant="secondary" size="sm" className="mt-4" onClick={backToList}>
-          Back to Idea Bank
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-4"
+          onClick={() => void navigate({ to: `/c/${channelId}/bank` })}
+        >
+          Back to Scripts Pro
         </Button>
       </div>
     )
@@ -143,31 +162,33 @@ export function BankIdeaEditor({
     setDescription(value)
     markDirty(true)
   }
-  const editPotentialTitle = (index: number, value: string) => {
-    setPotentialTitles((prev) => prev.map((t, i) => (i === index ? value : t)))
+  const editStatus = (value: BankIdeaStatus) => {
+    setStatus(value)
     markDirty(true)
   }
   const editRating = (value: number) => {
     setRating(value)
     markDirty(true)
   }
-  const editStatus = (value: BankIdeaStatus) => {
-    setStatus(value)
-    markDirty(true)
-  }
+
+  // Ready criteria for step 1, mirrored client-side for the hint line.
+  const missing: string[] = []
+  if (!title.trim()) missing.push('add a title')
+  if (!description.trim()) missing.push('add a description')
+  if (rating < 1) missing.push('set a rating')
 
   return (
-    <div className="mx-auto flex max-w-190 flex-col gap-4 px-4 py-5 md:px-8 md:py-7">
+    <div className="mx-auto flex max-w-190 flex-col gap-4 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
       <div className="flex flex-wrap items-center gap-3">
         <button
-          onClick={backToList}
-          className="flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-text-primary"
+          onClick={goDone}
+          className="flex min-h-11 items-center gap-1 text-sm text-text-muted transition-colors hover:text-text-primary"
         >
           <ChevronLeft size={15} />
-          Idea Bank
+          {isNew ? 'Scripts Pro' : doneLabel}
         </button>
         <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">
-          {isNew ? 'New idea' : 'Edit idea'}
+          {isNew ? 'New idea' : 'Idea'}
         </h2>
       </div>
 
@@ -199,46 +220,26 @@ export function BankIdeaEditor({
         <RatingPicker label="Rating" value={rating} onChange={editRating} />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="text-sm font-medium text-text-secondary">Potential video titles</div>
-        {potentialTitles.map((t, i) => (
-          <GrowInput
-            key={i}
-            placeholder={`Title idea ${i + 1} (optional)`}
-            aria-label={`Title idea ${i + 1}`}
-            value={t}
-            onChange={(value) => editPotentialTitle(i, value)}
-          />
-        ))}
-      </div>
-
       <div className="text-2xs text-text-muted">Cmd/Ctrl+S saves without leaving the page.</div>
 
-      {/* Docked action bar, state-driven (see CLAUDE.md): while dirty it offers
-          Cancel/Save; once clean (fresh open, or after a Cmd+S save-and-stay)
-          those collapse into a single Done — never a disabled Save, never a
-          "Cancel" when there is nothing to cancel. Delete stays left-separated. */}
-      <div className="sticky bottom-0 z-10 mt-1 flex items-center gap-2 border-t border-border bg-bg py-3">
-        {!isNew && (
-          <Button variant="ghost" onClick={() => setConfirmingDelete(true)}>
-            <span className="text-danger">Delete</span>
-          </Button>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-          {dirty ? (
-            <>
-              <Button variant="secondary" onClick={backToList}>
-                Cancel
-              </Button>
-              <Button loading={saving} onClick={() => void save(false)}>
-                Save
-              </Button>
-            </>
-          ) : (
-            <Button onClick={backToList}>Done</Button>
-          )}
-        </div>
-      </div>
+      <WorkflowActionBar
+        dirty={dirty}
+        saving={saving}
+        readying={readying}
+        isReady={stepReady}
+        missing={missing}
+        onCancel={goDone}
+        onSave={() => void save(false)}
+        onDone={goDone}
+        onReady={isNew ? undefined : () => void ready()}
+        left={
+          !isNew && (
+            <Button variant="ghost" onClick={() => setConfirmingDelete(true)}>
+              <span className="text-danger">Delete</span>
+            </Button>
+          )
+        }
+      />
 
       <ConfirmDialog
         open={confirmingDelete}
@@ -249,7 +250,7 @@ export function BankIdeaEditor({
           void remove({ channelId, ideaId })
             .then(() => {
               markDirty(false)
-              backToList()
+              void navigate({ to: `/c/${channelId}/bank` })
             })
             .catch((e) => {
               setDeleting(false)
@@ -258,7 +259,7 @@ export function BankIdeaEditor({
             })
         }}
         title="Delete idea?"
-        message="The idea is permanently removed from this channel's Idea Bank."
+        message="The idea and its whole workflow are permanently removed from this channel."
         confirmLabel="Delete"
         loading={deleting}
       />

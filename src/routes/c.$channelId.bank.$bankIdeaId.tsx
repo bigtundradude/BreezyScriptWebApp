@@ -1,18 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import type { Id } from '../../convex/_generated/dataModel'
-import { BankIdeaEditor } from '@/features/bank/BankIdeaEditor'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
+// Pass-through layout for one idea's workflow: index = step overview,
+// children = the individual step views.
 export const Route = createFileRoute('/c/$channelId/bank/$bankIdeaId')({
-  component: EditBankIdeaPage,
+  component: Outlet,
 })
-
-function EditBankIdeaPage() {
-  const { channelId, bankIdeaId } = Route.useParams()
-  return (
-    <BankIdeaEditor
-      key={bankIdeaId}
-      channelId={channelId as Id<'channels'>}
-      ideaId={bankIdeaId as Id<'bankIdeas'>}
-    />
-  )
-}

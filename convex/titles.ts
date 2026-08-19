@@ -72,24 +72,6 @@ export const createShape = mutation({
   },
 })
 
-export const updateShape = mutation({
-  args: {
-    channelId: v.id('channels'),
-    shapeId: v.id('titleShapes'),
-    name: v.optional(v.string()),
-    tagline: v.optional(v.string()),
-    mechanism: v.optional(v.string()),
-    whatMakesItWork: v.optional(v.array(v.string())),
-    whatUnderminesIt: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, { channelId, shapeId, ...fields }) => {
-    await requireOwner(ctx)
-    await getOwnedShape(ctx, channelId, shapeId)
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, val]) => val !== undefined))
-    await ctx.db.patch(shapeId, { ...patch, updatedAt: Date.now() })
-  },
-})
-
 // Deleting a custom shape does NOT delete its templates — they become unsorted
 // (desktop parity).
 export const removeShape = mutation({
@@ -140,23 +122,6 @@ export const createTemplate = mutation({
   },
 })
 
-export const updateTemplate = mutation({
-  args: {
-    channelId: v.id('channels'),
-    templateId: v.id('titleTemplates'),
-    pattern: v.optional(v.string()),
-    shapeId: v.optional(v.string()),
-    triggers: v.optional(v.array(v.string())),
-    whyItWorks: v.optional(v.string()),
-    exampleTitle: v.optional(v.string()),
-  },
-  handler: async (ctx, { channelId, templateId, ...fields }) => {
-    await requireOwner(ctx)
-    await getOwnedTemplate(ctx, channelId, templateId)
-    const patch = Object.fromEntries(Object.entries(fields).filter(([, val]) => val !== undefined))
-    await ctx.db.patch(templateId, { ...patch, updatedAt: Date.now() })
-  },
-})
 
 export const removeTemplate = mutation({
   args: { channelId: v.id('channels'), templateId: v.id('titleTemplates') },
@@ -164,43 +129,5 @@ export const removeTemplate = mutation({
     await requireOwner(ctx)
     await getOwnedTemplate(ctx, channelId, templateId)
     await ctx.db.delete(templateId)
-  },
-})
-
-// Apply path for title mining: inserts mined templates as unsorted (shapeId '').
-export const applyMine = mutation({
-  args: {
-    channelId: v.id('channels'),
-    templates: v.array(
-      v.object({
-        pattern: v.string(),
-        exampleSource: v.string(),
-        triggers: v.array(v.string()),
-        structureNotes: v.string(),
-        transferability: v.string(),
-        whyItWorks: v.string(),
-        outlierStrength: v.string(),
-      }),
-    ),
-  },
-  handler: async (ctx, { channelId, templates }) => {
-    await requireOwner(ctx)
-    let inserted = 0
-    for (const template of templates) {
-      if (!template.pattern.trim()) continue
-      await ctx.db.insert('titleTemplates', {
-        channelId,
-        ...template,
-        pattern: template.pattern.trim(),
-        manual: false,
-        shapeId: '',
-        whyThisVariant: '',
-        exampleTitle: '',
-        sortBoost: 0,
-        updatedAt: Date.now(),
-      })
-      inserted++
-    }
-    return { inserted, rejected: templates.length - inserted }
   },
 })

@@ -1,8 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import { ArrowRight, Brain, Clapperboard, Lightbulb, type LucideIcon } from 'lucide-react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
+import { ArrowRight, Brain, Clapperboard, Link2, Settings, type LucideIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/c/$channelId/')({
   component: ChannelHome,
@@ -16,40 +13,43 @@ const TOOLS: Array<{
   accentVar: string
 }> = [
   {
-    slug: 'scripts',
+    slug: 'bank',
     name: 'Scripts Pro',
-    description: 'Idea to finished script: packaging, brain dump, draft, and metadata — powered by your own AI.',
+    description: 'Take a video idea from first spark to a script you are ready to record.',
     icon: Clapperboard,
     accentVar: 'var(--color-tool-script)',
   },
   {
     slug: 'brain',
     name: 'Second Brain',
-    description: 'This channel’s private notebook: notes, stories, research, and finished scripts.',
+    description: 'Your private notebook of notes, stories, and research for this channel.',
     icon: Brain,
     accentVar: 'var(--color-tool-brain)',
   },
   {
-    slug: 'bank',
-    name: 'Idea Bank',
-    description: 'A vault of raw video ideas: capture them, rate them 0–5, and stash potential titles.',
-    icon: Lightbulb,
+    slug: 'links',
+    name: 'Affiliate Links',
+    description: 'Your affiliate links, tagged by where they go, one tap to copy.',
+    icon: Link2,
     accentVar: 'var(--color-tool-bank)',
+  },
+  {
+    slug: 'settings',
+    name: 'Settings',
+    description: 'Personas, audience, templates, and AI providers for this channel.',
+    icon: Settings,
+    accentVar: 'var(--color-tool-settings)',
   },
 ]
 
 function ChannelHome() {
   const { channelId } = Route.useParams()
-  const channel = useQuery(api.channels.get, { channelId: channelId as Id<'channels'> })
 
   return (
-    <div className="mx-auto flex w-full max-w-190 flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
-      <div>
-        <h1 className="text-[28px] font-extrabold tracking-[-0.04em] text-text-primary">
-          {channel?.name ?? ' '}
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">Pick a tool to get to work.</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-8">
+      <h1 className="text-center text-2xl font-extrabold tracking-[-0.03em] text-text-primary">
+        BreezyScript
+      </h1>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         {TOOLS.map((tool) => (
           <Link
