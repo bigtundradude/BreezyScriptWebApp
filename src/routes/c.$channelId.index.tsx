@@ -47,7 +47,7 @@ function ChannelHome() {
 
   return (
     <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-8">
-      <h1 className="text-center text-xl font-extrabold tracking-[-0.03em] text-text-primary">
+      <h1 className="text-center text-2xl font-extrabold tracking-[-0.03em] text-text-primary">
         BreezyScript
       </h1>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
