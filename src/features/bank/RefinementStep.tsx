@@ -24,7 +24,7 @@ export function RefinementStep({
   const versions = useQuery(api.bankDrafts.listRefinements, { channelId, ideaId })
   const current = useQuery(api.bankDrafts.getCurrentRefinement, { channelId, ideaId })
   const drafts = useQuery(api.bankDrafts.listDrafts, { channelId, ideaId })
-  const wpm = useQuery(api.scripts.getWordsPerMinute, { channelId })
+  const wpm = useQuery(api.pace.getWordsPerMinute, { channelId })
   const setCurrent = useMutation(api.bankDrafts.setCurrentRefinement)
   const updateText = useMutation(api.bankDrafts.updateRefinementText)
   const markRefineReady = useMutation(api.bankDrafts.markRefineReady)

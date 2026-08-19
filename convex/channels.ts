@@ -67,7 +67,7 @@ export const remove = mutation({
     const channel = await ctx.db.get(channelId)
     if (!channel) return
 
-    for (const table of ['notes', 'ideas', 'bankIdeas', 'bankTitleCandidates', 'bankQuestions', 'bankSnippets', 'bankStructures', 'bankDrafts', 'bankRefinementDrafts', 'bankReplacements', 'bankWordPrefs', 'titleShapes', 'titleTemplates', 'feedback'] as const) {
+    for (const table of ['notes', 'bankIdeas', 'bankTitleCandidates', 'bankQuestions', 'bankSnippets', 'bankStructures', 'bankDrafts', 'bankRefinementDrafts', 'bankReplacements', 'bankWordPrefs', 'bankPersonas', 'bankAudiences', 'titleShapes', 'titleTemplates'] as const) {
       const docs = await ctx.db
         .query(table)
         .withIndex('by_channel', (q) => q.eq('channelId', channelId))
@@ -83,35 +83,6 @@ export const remove = mutation({
     for (const thumbnail of thumbnails) {
       await ctx.storage.delete(thumbnail.storageId)
       await ctx.db.delete(thumbnail._id)
-    }
-
-    const productions = await ctx.db
-      .query('productions')
-      .withIndex('by_channel', (q) => q.eq('channelId', channelId))
-      .collect()
-    for (const prod of productions) {
-      const snapshots = await ctx.db
-        .query('draftSnapshots')
-        .withIndex('by_production', (q) => q.eq('productionId', prod._id))
-        .collect()
-      for (const snap of snapshots) await ctx.db.delete(snap._id)
-      await ctx.db.delete(prod._id)
-    }
-
-    for (const type of ['persona', 'audience', 'framework'] as const) {
-      const assets = await ctx.db
-        .query('foundationAssets')
-        .withIndex('by_channel_type', (q) => q.eq('channelId', channelId).eq('type', type))
-        .collect()
-      for (const doc of assets) await ctx.db.delete(doc._id)
-    }
-
-    for (const kind of ['video_structure', 'cta', 'disclosure', 'description'] as const) {
-      const items = await ctx.db
-        .query('libraryItems')
-        .withIndex('by_channel_kind', (q) => q.eq('channelId', channelId).eq('kind', kind))
-        .collect()
-      for (const doc of items) await ctx.db.delete(doc._id)
     }
 
     // Clear prefs that point at this channel.

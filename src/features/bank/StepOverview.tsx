@@ -51,7 +51,7 @@ export function StepOverview({
         className="flex min-h-11 w-fit items-center gap-1 text-sm text-text-muted transition-colors hover:text-text-primary"
       >
         <ChevronLeft size={15} />
-        Idea Bank
+        Scripts Pro
       </button>
 
       <div className="flex items-center gap-3">

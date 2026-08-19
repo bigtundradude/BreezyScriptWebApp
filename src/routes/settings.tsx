@@ -25,8 +25,8 @@ function SettingsPage() {
           <div>
             <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">Channels</h2>
             <p className="mt-0.5 text-sm text-text-secondary">
-              Each channel has its own Second Brain, foundations, and productions. The identity text
-              is injected into every megaprompt for that channel.
+              Each channel has its own Second Brain, script ideas, and settings. The identity text
+              is injected into every script draft prompt for that channel.
             </p>
           </div>
 
@@ -121,7 +121,7 @@ function ChannelCard({ channel }: { channel: Doc<'channels'> }) {
           value={identity}
           onChange={(e) => setIdentity(e.target.value)}
           rows={4}
-          placeholder={'Who this channel is: brand, point of view, what it stands for and against.\nInjected as the IDENTITY block in every megaprompt. Leave blank to omit.'}
+          placeholder={'Who this channel is: brand, point of view, what it stands for and against.\nInjected as the CHANNEL IDENTITY block in every script draft prompt. Leave blank to omit.'}
         />
         <div className="flex items-center gap-2">
           <Button size="sm" loading={saving} disabled={!dirty && !saving} onClick={() => void save()}>

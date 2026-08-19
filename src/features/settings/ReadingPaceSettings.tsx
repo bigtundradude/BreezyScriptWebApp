@@ -14,8 +14,8 @@ const SAMPLE = `Here is the honest truth about starting a channel: the first vid
 const SAMPLE_WORDS = SAMPLE.split(/\s+/).filter(Boolean).length
 
 export function ReadingPaceSettings({ channelId }: { channelId: Id<'channels'> }) {
-  const wpm = useQuery(api.scripts.getWordsPerMinute, { channelId })
-  const setWpm = useMutation(api.scripts.setWordsPerMinute)
+  const wpm = useQuery(api.pace.getWordsPerMinute, { channelId })
+  const setWpm = useMutation(api.pace.setWordsPerMinute)
 
   const [reading, setReading] = useState(false)
   const [elapsedMs, setElapsedMs] = useState(0)

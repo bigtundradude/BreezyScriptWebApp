@@ -1,6 +1,6 @@
 # BreezyScript Web
 
-Web rebuild of the BreezyScript desktop tools (Second Brain + Scripts Pro), now centered on the **Idea Bank** stepped idea→production workflow. Plans of record: `docs/idea-workflow-plan.md` (workflow rebuild) and `docs/implementation-plan.md` (original build).
+Web rebuild of the BreezyScript desktop tools: **Second Brain** plus **Scripts Pro**, the stepped idea→production workflow (formerly "Idea Bank"; the original megaprompt-based Scripts Pro was removed 2026-08-18). Plans of record: `docs/idea-workflow-plan.md` (workflow rebuild) and `docs/implementation-plan.md` (original build).
 
 ## Stack
 
@@ -19,8 +19,7 @@ OAuth `SITE_URL` points at it). `pnpm preview` uses 5198.
 
 Dev seed data:
 
-- `npx convex run seed:run` — original demo channel (sample notes + Scripts Pro ideas)
-- `npx convex run seedIdeaBank:run` — Idea Bank workflow fixture: the "Creator Compass"
+- `npx convex run seedIdeaBank:run` — Scripts Pro workflow fixture: the "Creator Compass"
   channel with ideas at every workflow state plus title shapes/templates. Re-runnable —
   it wipes and re-seeds only its own channel.
 

@@ -22,7 +22,7 @@ export function ScriptDrafterStep({
   const idea = useQuery(api.ideaBank.get, { channelId, ideaId })
   const personas = useQuery(api.bankDrafts.listPersonas, { channelId })
   const customStructures = useQuery(api.bankStructures.list, { channelId })
-  const wpm = useQuery(api.scripts.getWordsPerMinute, { channelId })
+  const wpm = useQuery(api.pace.getWordsPerMinute, { channelId })
   const gauge = useQuery(api.bankDrafts.materials, { channelId, ideaId })
   const drafts = useQuery(api.bankDrafts.listDrafts, { channelId, ideaId })
   const generate = useAction(api.bankDrafts.generate)

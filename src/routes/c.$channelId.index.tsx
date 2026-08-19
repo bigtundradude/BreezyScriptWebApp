@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ArrowRight, Brain, Clapperboard, Lightbulb, Settings, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Brain, Clapperboard, Settings, type LucideIcon } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 
@@ -16,30 +16,23 @@ const TOOLS: Array<{
   accentVar: string
 }> = [
   {
-    slug: 'scripts',
+    slug: 'bank',
     name: 'Scripts Pro',
-    description: 'Idea to finished script: packaging, brain dump, draft, and metadata — powered by your own AI.',
+    description: 'Take a video idea from first spark to a script you are ready to record.',
     icon: Clapperboard,
     accentVar: 'var(--color-tool-script)',
   },
   {
     slug: 'brain',
     name: 'Second Brain',
-    description: 'This channel’s private notebook: notes, stories, research, and finished scripts.',
+    description: 'Your private notebook of notes, stories, and research for this channel.',
     icon: Brain,
     accentVar: 'var(--color-tool-brain)',
   },
   {
-    slug: 'bank',
-    name: 'Idea Bank',
-    description: 'A vault of raw video ideas: capture them, rate them 0–5, and stash potential titles.',
-    icon: Lightbulb,
-    accentVar: 'var(--color-tool-bank)',
-  },
-  {
     slug: 'settings',
     name: 'Settings',
-    description: 'Title shapes and AI integrations: providers, models, and connections.',
+    description: 'Personas, audience, templates, and AI providers for this channel.',
     icon: Settings,
     accentVar: 'var(--color-tool-settings)',
   },

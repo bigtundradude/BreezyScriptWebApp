@@ -2,16 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import {
-  BarChart3,
-  Brain,
-  Clapperboard,
-  FolderOpen,
-  Lightbulb,
-  Settings,
-  StickyNote,
-  Type,
-} from 'lucide-react'
+import { Brain, FolderOpen, Lightbulb, Settings, StickyNote } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 
@@ -27,8 +18,8 @@ export function CommandPalette() {
   const activeChannelId = (channelMatch?.[1] ?? null) as Id<'channels'> | null
 
   const channels = useQuery(api.channels.list, open ? {} : 'skip')
-  const productions = useQuery(
-    api.productions.list,
+  const ideas = useQuery(
+    api.ideaBank.list,
     open && activeChannelId ? { channelId: activeChannelId } : 'skip',
   )
   const notes = useQuery(
@@ -57,11 +48,10 @@ export function CommandPalette() {
     const base = `/c/${activeChannelId}`
     return [
       { label: 'Second Brain', icon: Brain, to: `${base}/brain` },
-      { label: 'Scripts Pro — Build', icon: Clapperboard, to: `${base}/scripts/build` },
-      { label: 'Scripts Pro — Ideas', icon: Lightbulb, to: `${base}/scripts/ideas` },
-      { label: 'Scripts Pro — Feedback', icon: BarChart3, to: `${base}/scripts/feedback` },
-      { label: 'Scripts Pro — Titles', icon: Type, to: `${base}/scripts/titles` },
+      { label: 'Scripts Pro', icon: Lightbulb, to: `${base}/bank` },
+      { label: 'New idea', icon: Lightbulb, to: `${base}/bank/new` },
       { label: 'New note', icon: StickyNote, to: `${base}/brain/new` },
+      { label: 'Channel settings', icon: Settings, to: `${base}/settings` },
     ]
   }, [activeChannelId])
 
@@ -109,21 +99,15 @@ export function CommandPalette() {
             </Command.Group>
           )}
 
-          {(productions ?? []).length > 0 && (
-            <Command.Group heading="Productions" className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.06em] [&_[cmdk-group-heading]]:text-text-muted">
-              {(productions ?? []).slice(0, 12).map((production) => (
+          {(ideas ?? []).length > 0 && (
+            <Command.Group heading="Ideas" className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.06em] [&_[cmdk-group-heading]]:text-text-muted">
+              {(ideas ?? []).slice(0, 12).map((idea) => (
                 <Item
-                  key={production._id}
-                  icon={<Clapperboard size={14} />}
-                  onSelect={() =>
-                    go(
-                      production.status === 'building'
-                        ? `/c/${activeChannelId}/scripts/build/${production._id}`
-                        : `/c/${activeChannelId}/scripts/review/${production._id}`,
-                    )
-                  }
+                  key={idea._id}
+                  icon={<Lightbulb size={14} />}
+                  onSelect={() => go(`/c/${activeChannelId}/bank/${idea._id}`)}
                 >
-                  {production.name}
+                  {idea.title}
                 </Item>
               ))}
             </Command.Group>

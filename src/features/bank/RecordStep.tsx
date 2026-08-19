@@ -21,7 +21,7 @@ export function RecordStep({
 }) {
   const idea = useQuery(api.ideaBank.get, { channelId, ideaId })
   const current = useQuery(api.bankDrafts.getCurrentRefinement, { channelId, ideaId })
-  const wpm = useQuery(api.scripts.getWordsPerMinute, { channelId })
+  const wpm = useQuery(api.pace.getWordsPerMinute, { channelId })
   const markStepReady = useMutation(api.ideaBank.markStepReady)
   const navigate = useNavigate()
 

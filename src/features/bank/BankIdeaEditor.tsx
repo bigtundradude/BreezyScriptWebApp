@@ -65,7 +65,7 @@ export function BankIdeaEditor({
   const stepReady = Boolean(idea?.readySteps?.includes('idea'))
   // Done goes to the overview once the workflow exists, otherwise back to the list.
   const doneTarget = stepReady ? `/c/${channelId}/bank/${ideaId}` : `/c/${channelId}/bank`
-  const doneLabel = stepReady ? 'Idea' : 'Idea Bank'
+  const doneLabel = stepReady ? 'Idea' : 'Scripts Pro'
   const goDone = useCallback(
     () => void navigate({ to: doneTarget }),
     [navigate, doneTarget],
@@ -148,7 +148,7 @@ export function BankIdeaEditor({
           className="mt-4"
           onClick={() => void navigate({ to: `/c/${channelId}/bank` })}
         >
-          Back to Idea Bank
+          Back to Scripts Pro
         </Button>
       </div>
     )
@@ -185,7 +185,7 @@ export function BankIdeaEditor({
           className="flex min-h-11 items-center gap-1 text-sm text-text-muted transition-colors hover:text-text-primary"
         >
           <ChevronLeft size={15} />
-          {isNew ? 'Idea Bank' : doneLabel}
+          {isNew ? 'Scripts Pro' : doneLabel}
         </button>
         <h2 className="text-lg font-bold tracking-[-0.01em] text-text-primary">
           {isNew ? 'New idea' : 'Idea'}
@@ -259,7 +259,7 @@ export function BankIdeaEditor({
             })
         }}
         title="Delete idea?"
-        message="The idea and its whole workflow are permanently removed from this channel's Idea Bank."
+        message="The idea and its whole workflow are permanently removed from this channel."
         confirmLabel="Delete"
         loading={deleting}
       />
