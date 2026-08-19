@@ -20,8 +20,30 @@ cpSync(resolve(root, 'landing'), dist, { recursive: true })
 // Scoped to the app only; a bare `/* /index.html 200` would swallow the landing page.
 writeFileSync(resolve(dist, '_redirects'), '/app/* /app/index.html 200\n')
 
-if (!existsSync(resolve(dist, 'index.html')) || !existsSync(resolve(dist, '_redirects'))) {
-  console.error('postbuild: expected dist/index.html and dist/_redirects to exist')
+// Explicit MIME types so Cloudflare Pages can never fall back to
+// application/octet-stream and trip the browser's module-script MIME check,
+// plus immutable caching for the content-hashed assets.
+writeFileSync(
+  resolve(dist, '_headers'),
+  [
+    '/app/assets/*.js',
+    '  Content-Type: text/javascript; charset=utf-8',
+    '/app/assets/*.css',
+    '  Content-Type: text/css; charset=utf-8',
+    '/app/fonts/*.woff2',
+    '  Content-Type: font/woff2',
+    '/app/assets/*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+  ].join('\n'),
+)
+
+if (
+  !existsSync(resolve(dist, 'index.html')) ||
+  !existsSync(resolve(dist, '_redirects')) ||
+  !existsSync(resolve(dist, '_headers'))
+) {
+  console.error('postbuild: expected dist/index.html, dist/_redirects, and dist/_headers to exist')
   process.exit(1)
 }
-console.log('postbuild: dist/ = landing + app/ + _redirects ✓')
+console.log('postbuild: dist/ = landing + app/ + _redirects + _headers ✓')
