@@ -98,7 +98,18 @@ Settings → Environment Variables).
    - Scopes: only `openid email profile`. Do NOT add YouTube scopes here — that is a separate,
      later grant (stack decision §4).
 4. **Cloudflare Pages**: project with build command `pnpm build`, output directory `dist`.
-   Set `VITE_CONVEX_URL` as a build env var (production deployment URL from step 1).
+   Set `VITE_CONVEX_URL` as a build env var (production deployment URL from step 1, e.g.
+   `https://reliable-lion-127.convex.cloud`).
+
+   **Why this one lives in Cloudflare, not Convex:** `VITE_*` vars are BUILD-TIME values —
+   Vite stamps them into the JavaScript bundle when Cloudflare compiles the frontend. The
+   browser needs the Convex URL before it can connect to anything, so it can't come from
+   Convex. Everything server-side (API keys, `SITE_URL`, `OWNER_EMAIL`, Google secrets)
+   stays in Convex env vars and never reaches the browser.
+
+   **Changing it requires a rebuild:** saving the variable does nothing by itself — the old
+   bundle stays live with the old URL baked in. After editing, go to Deployments → ⋯ on the
+   latest production deployment → **Retry deployment** (or push any commit).
 5. **Cloudflare Access**: policy on `breezyscript.com/app*` — Google IdP, allow-list = owner email.
    The landing page at `/` stays public.
 6. **Verify before calling deploy done** (migration brief §2.2): hard-refresh a deep link like
