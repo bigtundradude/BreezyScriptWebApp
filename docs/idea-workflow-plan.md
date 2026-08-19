@@ -1,5 +1,13 @@
 # Idea Workflow — plan of record
 
+> **Update 2026-08-18 (later the same day):** the workflow described here shipped and was
+> **renamed Scripts Pro**; the original megaprompt-based Scripts Pro was fully removed
+> (code, routes, Convex functions, tables, seed data). "Idea Bank" below refers to what
+> is now the Scripts Pro tool at the `bank` routes. Personas moved to a dedicated
+> `bankPersonas` table with LLM voice extraction, and a channel target-audience
+> description (`bankAudiences`) joined the Settings area; both are injected into draft
+> prompts. The freeze note below is historical.
+
 Owner decision 2026-08-18. This document is the plan of record for rebuilding the
 BreezyScript workflow around the **Idea Bank**: a single stepped pipeline that takes an
 idea from capture to production. It supersedes the Scripts Pro flow for new work.

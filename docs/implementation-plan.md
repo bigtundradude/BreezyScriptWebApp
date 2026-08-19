@@ -1,5 +1,10 @@
 # BreezyScript Web — Detailed Implementation Plan
 
+> **Historical (2026-08-18):** the megaprompt-based Scripts Pro this plan describes was
+> removed; the stepped workflow from `docs/idea-workflow-plan.md` now carries the
+> Scripts Pro name. Second Brain sections remain accurate except that its left rail was
+> replaced by the compact toolbar pattern.
+
 **Date:** 2026-08-14 · **Status:** Phases 1–4 built (same day); phase 5 (deploy) awaits the owner's interactive setup — see README.md
 **Original status:** Phase-0 output (repo audit complete, no code written)
 **Fulfills:** the output contract in `docs/breezyscript-web-migration-design.md` §9
