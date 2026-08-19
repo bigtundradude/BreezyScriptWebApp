@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as affiliateLinks from "../affiliateLinks.js";
 import type * as ai from "../ai.js";
 import type * as aiSettings from "../aiSettings.js";
 import type * as auth from "../auth.js";
@@ -42,6 +43,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  affiliateLinks: typeof affiliateLinks;
   ai: typeof ai;
   aiSettings: typeof aiSettings;
   auth: typeof auth;

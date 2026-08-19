@@ -67,7 +67,7 @@ export const remove = mutation({
     const channel = await ctx.db.get(channelId)
     if (!channel) return
 
-    for (const table of ['notes', 'bankIdeas', 'bankTitleCandidates', 'bankQuestions', 'bankSnippets', 'bankStructures', 'bankDrafts', 'bankRefinementDrafts', 'bankReplacements', 'bankWordPrefs', 'bankPersonas', 'bankAudiences', 'titleShapes', 'titleTemplates'] as const) {
+    for (const table of ['notes', 'bankIdeas', 'bankTitleCandidates', 'bankQuestions', 'bankSnippets', 'bankStructures', 'bankDrafts', 'bankRefinementDrafts', 'bankReplacements', 'bankWordPrefs', 'bankPersonas', 'bankAudiences', 'affiliateTags', 'affiliateLinks', 'titleShapes', 'titleTemplates'] as const) {
       const docs = await ctx.db
         .query(table)
         .withIndex('by_channel', (q) => q.eq('channelId', channelId))

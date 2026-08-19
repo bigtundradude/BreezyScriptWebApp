@@ -240,6 +240,24 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_channel', ['channelId']),
 
+  // Affiliate Links micro tool (docs/affiliate-links-plan.md). A link is one
+  // product entered once; each of its URLs carries exactly one tag saying
+  // where that URL belongs (video description, website, course, …).
+  affiliateTags: defineTable({
+    channelId: v.id('channels'),
+    name: v.string(),
+    sortOrder: v.number(),
+    updatedAt: v.number(),
+  }).index('by_channel', ['channelId']),
+
+  affiliateLinks: defineTable({
+    channelId: v.id('channels'),
+    title: v.string(),
+    shortTitle: v.string(),
+    urls: v.array(v.object({ url: v.string(), tagId: v.id('affiliateTags') })),
+    updatedAt: v.number(),
+  }).index('by_channel', ['channelId']),
+
   // App-wide AI model choices per provider (docs/idea-workflow-plan.md §6b).
   // API keys are NEVER stored here — they live in deployment env vars and are
   // read only inside Convex functions. Active provider per task class lives in

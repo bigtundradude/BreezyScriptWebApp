@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { ArrowRight, Brain, Clapperboard, Settings, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Brain, Clapperboard, Link2, Settings, type LucideIcon } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 
@@ -28,6 +28,13 @@ const TOOLS: Array<{
     description: 'Your private notebook of notes, stories, and research for this channel.',
     icon: Brain,
     accentVar: 'var(--color-tool-brain)',
+  },
+  {
+    slug: 'links',
+    name: 'Affiliate Links',
+    description: 'Your affiliate links, tagged by where they go, one tap to copy.',
+    icon: Link2,
+    accentVar: 'var(--color-tool-bank)',
   },
   {
     slug: 'settings',

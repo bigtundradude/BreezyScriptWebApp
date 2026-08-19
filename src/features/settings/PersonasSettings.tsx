@@ -474,7 +474,7 @@ function PersonaEditor({
               <Button variant="secondary" onClick={() => void cancel()}>
                 Cancel
               </Button>
-              <Button loading={saving} disabled={!form.label.trim()} onClick={() => void doSave(false)}>
+              <Button loading={saving} onClick={() => void doSave(false)}>
                 Save
               </Button>
             </>
