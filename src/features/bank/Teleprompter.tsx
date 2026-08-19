@@ -56,7 +56,9 @@ const DEFAULT_PREFS: Prefs = {
   opacity: 100,
   speed: 40,
   mirror: false,
-  railOpen: true,
+  // Closed by default: the overlay rail covers most of a phone's line width,
+  // so first-run must show the script, not the controls.
+  railOpen: false,
 }
 
 function loadPrefs(): Prefs {
@@ -262,6 +264,15 @@ export function Teleprompter({
           the text as a drawer at every size (owner, 2026-08-18) so toggling it
           never reflows the scrolling text. */}
       <div className="relative flex min-h-0 flex-1">
+        {prefs.railOpen && (
+          // Tap-away scrim: the rail overlays the text, so tapping the text
+          // area dismisses the controls instead of being swallowed.
+          <div
+            aria-hidden
+            onClick={() => set('railOpen', false)}
+            className="absolute inset-0 z-[9] bg-black/40"
+          />
+        )}
         {prefs.railOpen && (
           <div className="absolute inset-y-0 left-0 z-10 flex w-64 flex-col gap-5 overflow-y-auto border-r border-border-subtle bg-surface p-4 shadow-[4px_0_24px_rgba(0,0,0,0.45)] md:w-60">
             <RailSlider

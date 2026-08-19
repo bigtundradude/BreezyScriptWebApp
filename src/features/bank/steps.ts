@@ -12,8 +12,7 @@ import {
 } from 'lucide-react'
 
 // Client mirror of convex/ideaBank.ts STEP_ORDER (docs/idea-workflow-plan.md §2).
-// `route` is the path segment under /c/$channelId/bank/$ideaId; steps without one
-// are placeholders and render locked in the overview.
+// `route` is the path segment under /c/$channelId/bank/$ideaId.
 export type StepId =
   | 'idea'
   | 'titles'

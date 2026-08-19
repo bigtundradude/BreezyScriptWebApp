@@ -22,11 +22,6 @@ export type ChatResult = {
   model: string
 }
 
-export const PROVIDER_LABELS: Record<AiProvider, string> = {
-  claude: 'Claude',
-  openai: 'OpenAI',
-  grok: 'Grok',
-}
 
 export const PROVIDER_ENV_KEYS: Record<AiProvider, string> = {
   claude: 'ANTHROPIC_API_KEY',

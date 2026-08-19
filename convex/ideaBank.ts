@@ -4,8 +4,8 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { requireOwner } from './lib/owner'
 
-// Idea Bank — the stepped idea→production workflow (docs/idea-workflow-plan.md).
-// Fully separate from Scripts Pro (own tables, functions, and UI).
+// Scripts Pro — the stepped idea→production workflow (docs/idea-workflow-plan.md,
+// written under the tool's original "Idea Bank" name; the bank* naming stayed).
 
 // Canonical workflow order. A step is unlocked iff every earlier id is in
 // readySteps; readiness is validated here, never by the client.

@@ -87,6 +87,7 @@ export const remove = mutation({
     for (const pref of prefs) {
       if (pref.key === 'lastChannelId' && pref.value === channelId) await ctx.db.delete(pref._id)
       if (pref.key === `wordsPerMinute:${channelId}`) await ctx.db.delete(pref._id)
+      if (pref.key === `affiliateTagsSeeded:${channelId}`) await ctx.db.delete(pref._id)
     }
 
     await ctx.db.delete(channelId)

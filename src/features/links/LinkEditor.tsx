@@ -43,8 +43,18 @@ export function LinkEditor({
   )
   const [form, setForm] = useState<Form>(baseline)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  const dirty = JSON.stringify(form) !== JSON.stringify(baseline)
+  // Compare what would actually be SAVED (the server drops blank URL rows), so
+  // an untouched blank row can't leave the editor permanently dirty.
+  const payloadOf = (f: Form) => ({
+    title: f.title.trim() || 'Untitled',
+    shortTitle: f.shortTitle.trim(),
+    urls: f.urls
+      .filter((u) => u.url.trim() && u.tagId)
+      .map((u) => ({ url: u.url.trim(), tagId: u.tagId })),
+  })
+  const dirty = JSON.stringify(payloadOf(form)) !== JSON.stringify(payloadOf(baseline))
 
   const addUrlRow = () => {
     // Preselect the first tag no row uses yet, since one URL per placement is
@@ -67,6 +77,13 @@ export function LinkEditor({
   }
 
   const doSave = async (stay: boolean) => {
+    // A typed URL with no tag would be silently dropped by the save filter —
+    // refuse instead of losing it.
+    if (form.urls.some((u) => u.url.trim() && !u.tagId)) {
+      setSaveError('Every URL needs a tag. Pick one, or remove the row.')
+      return
+    }
+    setSaveError(null)
     setSaving(true)
     try {
       const id = await save({
@@ -195,6 +212,7 @@ export function LinkEditor({
         </Button>
       </div>
 
+      {saveError && <p className="text-xs text-danger">{saveError}</p>}
       <div className="sticky bottom-0 z-10 mt-1 flex items-center gap-2 border-t border-border bg-bg py-3">
         {link && (
           <Button variant="danger" onClick={() => void confirmRemove()}>

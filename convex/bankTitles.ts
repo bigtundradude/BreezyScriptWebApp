@@ -5,7 +5,7 @@ import { requireOwner } from './lib/owner'
 import { BUILTIN_TITLE_SHAPES } from './lib/builtinTitleShapes'
 import { NO_DASH_RULE, runChat, stripDashes } from './llm'
 
-// Title generation for the Idea Bank titles step (docs/idea-workflow-plan.md §4):
+// Title generation for the Scripts Pro titles step (docs/idea-workflow-plan.md §4):
 // every title template of the channel is instantiated into a concrete title for
 // the idea via the configured simple-tasks model.
 

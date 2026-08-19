@@ -4,7 +4,7 @@ import { useBlocker } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 import { ChevronLeft, RotateCcw, X } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
-import type { Doc, Id } from '../../../convex/_generated/dataModel'
+import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Button,
   ConfirmDialog,
@@ -354,4 +354,3 @@ export function NoteEditor({
   )
 }
 
-export type NoteDoc = Doc<'notes'>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
+import { useAction, useMutation, useQuery } from 'convex/react'
 import { ChevronLeft, FolderOpen, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../convex/_generated/api'
 import type { Doc, Id } from '../../convex/_generated/dataModel'
@@ -18,16 +18,71 @@ export const Route = createFileRoute('/settings')({
 function SettingsPage() {
   const channels = useQuery(api.channels.list)
   const { confirm, ConfirmUI } = useConfirm()
+  const navigate = useNavigate()
+
+  // Dev-only data tools: hidden in production builds AND server-gated on the
+  // ALLOW_DEV_DATA deployment env var (see convex/devData.ts).
+  const devStatus = useQuery(api.devData.status, import.meta.env.DEV ? {} : 'skip')
+  const seedAction = useAction(api.devData.seed)
+  const wipeAction = useAction(api.devData.wipeAll)
+  const [seeding, setSeeding] = useState(false)
+  const [wiping, setWiping] = useState(false)
+  const [devError, setDevError] = useState<string | null>(null)
+
+  const runSeed = async () => {
+    setSeeding(true)
+    setDevError(null)
+    try {
+      await seedAction({})
+    } catch (e) {
+      setDevError(e instanceof Error ? e.message : 'Seeding failed.')
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  const runWipe = async () => {
+    const ok = await confirm({
+      title: 'Wipe ALL app data?',
+      message:
+        'Every channel, note, idea, draft, link, tag, persona, and setting is permanently deleted, including everything you added by hand. You stay signed in and land on the first-run screen.',
+      confirmLabel: 'Wipe everything',
+    })
+    if (!ok) return
+    setWiping(true)
+    setDevError(null)
+    try {
+      await wipeAction({})
+      void navigate({ to: '/' })
+    } catch (e) {
+      setDevError(e instanceof Error ? e.message : 'Wipe failed.')
+    } finally {
+      setWiping(false)
+    }
+  }
+  // Session keys the editor so saving a NEW channel (editing flips 'new' → id)
+  // does not remount it mid-typing.
   const [editing, setEditing] = useState<'new' | Id<'channels'> | null>(null)
+  const [session, setSession] = useState(0)
+  const openEditor = (target: 'new' | Id<'channels'>) => {
+    setSession((s) => s + 1)
+    setEditing(target)
+  }
+
+  // A channel deleted elsewhere must not leave its editor open as a
+  // pre-filled "create" form — fall back to the list.
+  const editingResolved =
+    editing === 'new' || (editing !== null && channels?.some((c) => c._id === editing))
+  if (editing && channels && !editingResolved) setEditing(null)
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg">
       <Header toolName="Settings" />
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-190 flex-col gap-4 px-4 py-5 pb-10 md:px-8 md:py-7 md:pb-12">
-          {editing ? (
+          {editing && editingResolved ? (
             <ChannelEditor
-              key={editing}
+              key={session}
               channel={
                 editing === 'new' ? null : (channels?.find((c) => c._id === editing) ?? null)
               }
@@ -47,7 +102,7 @@ function SettingsPage() {
                     settings.
                   </p>
                 </div>
-                <Button className="shrink-0" onClick={() => setEditing('new')}>
+                <Button className="shrink-0" onClick={() => openEditor('new')}>
                   <Plus size={14} />
                   Add channel
                 </Button>
@@ -61,7 +116,7 @@ function SettingsPage() {
                 channels.map((channel) => (
                   <button
                     key={channel._id}
-                    onClick={() => setEditing(channel._id)}
+                    onClick={() => openEditor(channel._id)}
                     className="flex min-h-13 items-center gap-3 rounded-panel border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-raised"
                   >
                     <FolderOpen size={16} className="shrink-0 text-text-muted" />
@@ -77,6 +132,26 @@ function SettingsPage() {
                 ))
               )}
 
+              {import.meta.env.DEV && devStatus?.enabled && (
+                <div className="mt-4 flex flex-col gap-2 rounded-panel border border-border bg-surface p-4">
+                  <div className="text-2xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                    Developer
+                  </div>
+                  <p className="text-xs text-text-secondary">
+                    Local development only. Seed the Creator Compass demo channel, or wipe every
+                    channel and setting to test the new-user state.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="secondary" loading={seeding} onClick={() => void runSeed()}>
+                      Seed demo data
+                    </Button>
+                    <Button variant="danger" loading={wiping} onClick={() => void runWipe()}>
+                      Wipe all data
+                    </Button>
+                  </div>
+                  {devError && <p className="text-xs text-danger">{devError}</p>}
+                </div>
+              )}
             </>
           )}
         </div>

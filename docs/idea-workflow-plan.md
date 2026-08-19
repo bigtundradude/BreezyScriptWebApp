@@ -12,11 +12,10 @@ Owner decision 2026-08-18. This document is the plan of record for rebuilding th
 BreezyScript workflow around the **Idea Bank**: a single stepped pipeline that takes an
 idea from capture to production. It supersedes the Scripts Pro flow for new work.
 
-**Scripts Pro is frozen.** Do not modify `src/features/scripts/`, the
-`c.$channelId.scripts.*` routes, or its Convex functions (`ideas`, `productions`,
-`titles`, `foundationAssets`, `library`, `feedbackFns`) unless the owner explicitly asks.
-The workflow uses **new tables** (prefix `bank*`) and may **read** existing tables
-(e.g. `titleShapes`/`titleTemplates`) without changing their shape or functions.
+**Scripts Pro freeze (historical, resolved):** the old megaprompt Scripts Pro was frozen
+during the rebuild and then fully removed on 2026-08-18; none of the files or tables the
+original freeze covered exist anymore. `titleShapes`/`titleTemplates` survived as the
+workflow's own title library.
 
 ## 1. Principles
 
@@ -81,7 +80,7 @@ rating, three potential titles, three thumbnail ideas — i.e. steps 1–3 ready
   - `/c/$channelId/bank/$ideaId/idea` — step 1
   - `/c/$channelId/bank/$ideaId/titles` — step 2
   - `/c/$channelId/bank/$ideaId/thumbnails` — step 3
-- **No left rail anywhere in the bank tool.** The bank layout drops `LeftRail`; the
+- **No left rail anywhere in the bank tool** (since 2026-08-18, no left rails exist anywhere in the app); the
   list page gets a compact back-to-channel control; workflow views use their existing
   back links (step view → overview → list).
 
@@ -238,8 +237,8 @@ the drafter has what it needs** (no per-field criteria).
 
 Settings-driven generation of complete spoken-word scripts; unlimited drafts.
 
-- **Persona**: picked from the channel's `foundationAssets` personas; the default
-  persona preselects. Its `promptSnippet` goes into the system prompt.
+- **Persona**: picked from the channel's `bankPersonas`; the default persona
+  preselects. Its `voice` guide goes into the system prompt.
 - **Length**: user enters minutes; target words = minutes × the channel's
   words-per-minute. WPM comes from **Settings → Reading pace**: the user reads a
   ~160-word sample aloud, the app times it and computes WPM (manual override too;

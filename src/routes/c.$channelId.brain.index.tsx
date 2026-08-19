@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { ChevronLeft, Plus, SlidersHorizontal, StickyNote } from 'lucide-react'
@@ -7,8 +7,8 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { ListPage } from '@/components/layout/ListPage'
 import { ListCard } from '@/components/layout/ListCard'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
-import { useDebouncedValue } from '@/lib/useDebouncedValue'
-import { KIND_OPTIONS, kindLabel, sourceLabel, type NoteKind, NOTE_KINDS } from '@/features/brain/lib'
+import { useLiveSearch } from '@/lib/useLiveSearch'
+import { KIND_OPTIONS, kindLabel, type NoteKind, NOTE_KINDS } from '@/features/brain/lib'
 import { formatDate } from '@/lib/utils'
 
 type NotesSearch = { q?: string; kind?: NoteKind }
@@ -31,15 +31,9 @@ function NotesPage() {
 
   // Debounced live search (owner, 2026-08-18): typing filters after a short
   // pause; clearing the box resets.
-  const [input, setInput] = useState(q ?? '')
-  const debouncedQ = useDebouncedValue(input.trim(), 250)
-  useEffect(() => {
-    if (debouncedQ === (q ?? '')) return
-    void navigate({
-      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
-      replace: true,
-    })
-  }, [debouncedQ, q, navigate])
+  const { input, setInput } = useLiveSearch(q, (value) =>
+    void navigate({ search: (prev) => ({ ...prev, q: value }), replace: true }),
+  )
   // Filters hide behind a toggle to save vertical space on the phone; start
   // open when the URL already carries an active filter.
   const [showFilters, setShowFilters] = useState(Boolean(kind))
@@ -127,7 +121,6 @@ function NotesPage() {
       }
     >
       {(notes ?? []).map((note) => {
-        const origin = sourceLabel(note.sourceRef)
         return (
           <ListCard
             key={note._id}
@@ -137,7 +130,6 @@ function NotesPage() {
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium text-text-primary">{note.title}</span>
               <Badge variant="muted">{kindLabel(note.kind)}</Badge>
-              {origin && <Badge variant="info">{origin}</Badge>}
             </div>
             {note.snippet && (
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-secondary">

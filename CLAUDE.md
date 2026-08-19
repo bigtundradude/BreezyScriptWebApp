@@ -1,6 +1,6 @@
 # BreezyScriptWebApp
 
-Web rebuild of two micro tools (**Second Brain**, **Scripts Pro**) from the BreezyScript Tauri desktop app at `../BreezyScript`. **Scripts Pro is the stepped idea→production workflow** (formerly called "Idea Bank", living at the `bank` routes and `bank*` tables); the original megaprompt-based Scripts Pro was fully removed on 2026-08-18 (code, routes, Convex functions, tables, and seed data).
+Web rebuild of the BreezyScript micro tools (**Second Brain**, **Scripts Pro**, plus the web-only **Affiliate Links**) from the Tauri desktop app at `../BreezyScript`. **Scripts Pro is the stepped idea→production workflow** (formerly called "Idea Bank", living at the `bank` routes and `bank*` tables); the original megaprompt-based Scripts Pro was fully removed on 2026-08-18 (code, routes, Convex functions, tables, and seed data).
 
 **⚠️ Never modify anything in `../BreezyScript`.** It is read-only reference material. Copying patterns/values out of it is fine; importing from it or depending on it is not.
 

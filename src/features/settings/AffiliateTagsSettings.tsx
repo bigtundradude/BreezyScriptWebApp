@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
@@ -22,8 +22,12 @@ export function AffiliateTagsSettings({ channelId }: { channelId: Id<'channels'>
   const [newName, setNewName] = useState('')
   const [adding, setAdding] = useState(false)
 
+  const seededRef = useRef(false)
   useEffect(() => {
-    if (tags && tags.length === 0) void ensureDefaults({ channelId })
+    if (!seededRef.current && tags && tags.length === 0) {
+      seededRef.current = true
+      void ensureDefaults({ channelId })
+    }
   }, [tags, ensureDefaults, channelId])
 
   if (!tags || !links) {

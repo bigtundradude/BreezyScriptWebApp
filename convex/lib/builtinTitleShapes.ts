@@ -1,8 +1,7 @@
-// Verbatim copy of src/features/scripts/lib/titleShapes.ts (Scripts Pro is
-// frozen; convex/ cannot import from src/, so the workflow keeps its own copy).
-// The built-in title shape library: 10 shapes, ~110 templates, shipped as code
-// constants. Settings displays them read-only; title generation consumes them
-// alongside the channel's custom templates. Keep in sync with the source file.
+// The built-in title shape library (canonical copy, originally ported from the
+// desktop app): 10 shapes, ~110 templates, shipped as code constants. Settings
+// displays them read-only; title generation consumes them alongside the
+// channel's custom templates.
 
 export interface BuiltinTitleTemplate { text: string; why: string; example: string }
 export interface BuiltinTitleShape {
@@ -314,12 +313,3 @@ export const BUILTIN_TITLE_SHAPES: BuiltinTitleShape[] = [
   },
 ]
 
-// ── Built-in template lookup (DB-free subset of the desktop helpers) ─────────
-export interface BuiltinUiTemplate {
-  id: string; text: string; why: string; example: string; shapeId: string; isBuiltin: true
-}
-
-export function builtinTemplatesForShape(shapeId: string): BuiltinUiTemplate[] {
-  const s = BUILTIN_TITLE_SHAPES.find(x => x.id === shapeId)
-  return s ? s.templates.map((t, i) => ({ id: `${shapeId}#${i}`, text: t.text, why: t.why, example: t.example, shapeId, isBuiltin: true as const })) : []
-}

@@ -79,8 +79,15 @@ export function PersonasSettings({ channelId }: { channelId: Id<'channels'> }) {
   const remove = useMutation(api.bankPersonas.remove)
   const { confirm, ConfirmUI } = useConfirm()
 
-  // null = list; 'new' = creating; an id = editing that persona.
+  // null = list; 'new' = creating; an id = editing that persona. The session
+  // counter keys the editor so saving a NEW persona (editing flips 'new' → id)
+  // does not remount it and drop in-flight typing.
   const [editing, setEditing] = useState<'new' | Id<'bankPersonas'> | null>(null)
+  const [session, setSession] = useState(0)
+  const openEditor = (target: 'new' | Id<'bankPersonas'>) => {
+    setSession((s) => s + 1)
+    setEditing(target)
+  }
 
   if (!personas) {
     return (
@@ -97,7 +104,7 @@ export function PersonasSettings({ channelId }: { channelId: Id<'channels'> }) {
     return (
       <>
         <PersonaEditor
-          key={editing}
+          key={session}
           channelId={channelId}
           persona={persona}
           confirm={confirm}
@@ -137,7 +144,7 @@ export function PersonasSettings({ channelId }: { channelId: Id<'channels'> }) {
           className="flex items-center rounded-panel border border-border bg-surface"
         >
           <button
-            onClick={() => setEditing(persona._id)}
+            onClick={() => openEditor(persona._id)}
             className="flex min-h-13 min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-raised"
           >
             <UserRound size={16} className="shrink-0 text-text-muted" />
@@ -163,7 +170,7 @@ export function PersonasSettings({ channelId }: { channelId: Id<'channels'> }) {
       ))}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => setEditing('new')}>
+        <Button onClick={() => openEditor('new')}>
           <Plus size={14} />
           Add persona
         </Button>
@@ -200,7 +207,6 @@ function PersonaEditor({
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
 
-  const dirty = JSON.stringify(form) !== JSON.stringify(baseline)
   const set = <K extends keyof Form>(key: K, value: Form[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
 
@@ -213,6 +219,15 @@ function PersonaEditor({
     energy: f.energy,
     notes: f.notes,
   })
+
+  // Compare what would actually be SAVED (blank samples are dropped), so an
+  // untouched empty sample box can't leave the editor permanently dirty.
+  const savedShape = (f: Form) => ({
+    label: f.label.trim() || 'Untitled',
+    voice: f.voice,
+    ...profileOf(f),
+  })
+  const dirty = JSON.stringify(savedShape(form)) !== JSON.stringify(savedShape(baseline))
 
   const doSave = async (stay: boolean) => {
     setSaving(true)

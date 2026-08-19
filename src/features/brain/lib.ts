@@ -33,8 +33,3 @@ export function kindLabel(kind: string): string {
 
 export const KIND_OPTIONS = NOTE_KINDS.map((k) => ({ value: k, label: LABELS[k] }))
 
-// source_ref prefix → origin badge label (desktop parity)
-export function sourceLabel(sourceRef: string): string | null {
-  if (sourceRef.startsWith('scriptpro:')) return 'from Scripts Pro'
-  return null
-}

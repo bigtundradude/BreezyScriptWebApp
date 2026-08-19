@@ -82,7 +82,13 @@ export function ScriptDrafterStep({
   }
 
   const defaultPersona = personas.find((p) => p.isDefault) ?? personas[0]
-  const effectivePersonaId = personaId ?? idea.draftPersonaId ?? (defaultPersona?._id as string | undefined) ?? ''
+  // Validate the remembered persona like the structure below — a deleted
+  // persona's id must fall back, not silently draft with no persona.
+  const savedPersonaId = personaId ?? idea.draftPersonaId
+  const effectivePersonaId =
+    savedPersonaId === '' || personas.some((p) => (p._id as string) === savedPersonaId)
+      ? (savedPersonaId ?? (defaultPersona?._id as string | undefined) ?? '')
+      : ((defaultPersona?._id as string | undefined) ?? '')
   const savedStructureRef = structureRef ?? idea.draftStructureRef
   const effectiveStructureRef =
     savedStructureRef && structureOptions.some((o) => o.value === savedStructureRef)

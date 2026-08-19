@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { ChevronLeft, Lightbulb, Plus, SlidersHorizontal } from 'lucide-react'
@@ -7,7 +7,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { ListPage } from '@/components/layout/ListPage'
 import { ListCard } from '@/components/layout/ListCard'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
-import { useDebouncedValue } from '@/lib/useDebouncedValue'
+import { useLiveSearch } from '@/lib/useLiveSearch'
 import { RatingBadge } from '@/features/bank/StarRating'
 import { BANK_STATUSES, STATUS_BADGE, STATUS_OPTIONS, type BankIdeaStatus } from '@/features/bank/lib'
 import { formatDate } from '@/lib/utils'
@@ -45,15 +45,9 @@ function BankIdeasPage() {
   // Debounced live search (owner, 2026-08-18): typing filters after a short
   // pause; clearing the box resets. The URL still carries the term (replace,
   // so keystrokes don't stack history).
-  const [input, setInput] = useState(q ?? '')
-  const debouncedQ = useDebouncedValue(input.trim(), 250)
-  useEffect(() => {
-    if (debouncedQ === (q ?? '')) return
-    void navigate({
-      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
-      replace: true,
-    })
-  }, [debouncedQ, q, navigate])
+  const { input, setInput } = useLiveSearch(q, (value) =>
+    void navigate({ search: (prev) => ({ ...prev, q: value }), replace: true }),
+  )
   // Filters hide behind a toggle to save vertical space on the phone; start
   // open when the URL already carries an active filter.
   const [showFilters, setShowFilters] = useState(Boolean(r || s))

@@ -86,7 +86,7 @@ Rationale: the root domain gets an honest public face for branding, and stranger
 
 **⚠️ `_redirects` must land at `dist/_redirects`, not `dist/app/_redirects`.** If the app builds into `dist/app/`, Vite's `publicDir` will copy it to the wrong place. Handle this explicitly in the build script and verify the file's location in the output before deploying.
 
-**Verify before calling deploy done:** hard-refresh a deep link like `/app/scripts/abc123` on a deployed preview, and confirm `/` still serves the landing page.
+**Verify before calling deploy done:** hard-refresh a deep link like `/app/c/<id>/bank` on a deployed preview, and confirm `/` still serves the landing page.
 
 The landing page should consume the **same design tokens** extracted in §5.1 so both surfaces read as one product. It is a brochure — do not build it in React.
 
@@ -117,9 +117,9 @@ All app routes sit under the `/app` basepath (§2.2). Paths below are **router-r
 
 ```
 /                          → home / launcher      (served at /app)
-/scripts                   → Scripts Pro          (served at /app/scripts)
-/scripts/$scriptId
-/scripts/$scriptId/...     → sub-views; use search params for view state
+/c/$channelId/bank         → Scripts Pro          (historical: originally /scripts,
+/c/$channelId/bank/$ideaId    the megaprompt tool this doc describes was removed
+                              2026-08-18 and the stepped workflow took the name)
 /brain                     → Second Brain
 /brain/$itemId
 /settings

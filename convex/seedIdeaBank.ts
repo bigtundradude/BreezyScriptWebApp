@@ -2,8 +2,7 @@ import { internalMutation } from './_generated/server'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 
-// Idea Bank workflow fixture — separate from seed.ts (decision: workflow test
-// data lives apart from the original demo data). `npx convex run seedIdeaBank:run`
+// Scripts Pro workflow fixture. `npx convex run seedIdeaBank:run`
 // on a dev deployment. Re-runnable: reuses the channel by name and re-seeds its
 // bank ideas, title shapes, and title templates from scratch. Never wire into UI.
 //

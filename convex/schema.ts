@@ -35,7 +35,7 @@ export default defineSchema({
     body: v.string(),
     kind: noteKind,
     tags: v.array(v.string()),
-    sourceRef: v.optional(v.string()), // 'scriptpro:<productionId>' when pushed from another tool
+    sourceRef: v.optional(v.string()), // origin marker when a note is pushed from another tool ('' or unset = hand-written)
     searchText: v.string(), // title + '\n' + tags + '\n' + body, maintained by mutations
     updatedAt: v.number(),
   })
@@ -43,8 +43,7 @@ export default defineSchema({
     .index('by_channel_source', ['channelId', 'sourceRef'])
     .searchIndex('search', { searchField: 'searchText', filterFields: ['channelId', 'kind'] }),
 
-  // ——— Idea Bank ———
-  // Deliberately separate from Scripts Pro's `ideas` table (own tool, own logic).
+  // ——— Scripts Pro (the stepped idea→production workflow, formerly Idea Bank) ———
   bankIdeas: defineTable({
     channelId: v.id('channels'),
     title: v.string(),
@@ -107,7 +106,7 @@ export default defineSchema({
     .index('by_channel', ['channelId']),
 
   // Custom video-structure blueprints (plan §5e), edited in Settings → Video
-  // structures. Built-ins ship as code constants (convex/lib/builtinStructures).
+  // structures. Built-ins ship as code constants (convex/lib/defaultStructures).
   bankStructures: defineTable({
     channelId: v.id('channels'),
     name: v.string(),
@@ -299,7 +298,7 @@ export default defineSchema({
     shapeId: v.string(), // '' unsorted | 'shape:*' built-in | titleShapes doc id
     whyThisVariant: v.string(),
     exampleTitle: v.string(),
-    sortBoost: v.number(), // written only by feedback re-rank apply
+    sortBoost: v.number(), // legacy ranking nudge, always 0 now (old feedback re-rank wrote it)
     updatedAt: v.number(),
   }).index('by_channel', ['channelId']),
 

@@ -22,6 +22,7 @@ import type * as bankStructures from "../bankStructures.js";
 import type * as bankThumbnails from "../bankThumbnails.js";
 import type * as bankTitles from "../bankTitles.js";
 import type * as channels from "../channels.js";
+import type * as devData from "../devData.js";
 import type * as http from "../http.js";
 import type * as ideaBank from "../ideaBank.js";
 import type * as lib_builtinTitleShapes from "../lib/builtinTitleShapes.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   bankThumbnails: typeof bankThumbnails;
   bankTitles: typeof bankTitles;
   channels: typeof channels;
+  devData: typeof devData;
   http: typeof http;
   ideaBank: typeof ideaBank;
   "lib/builtinTitleShapes": typeof lib_builtinTitleShapes;

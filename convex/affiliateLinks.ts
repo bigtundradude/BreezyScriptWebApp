@@ -46,21 +46,31 @@ export const listTags = query({
 })
 
 // Idempotent: called on first mount of the links page / tags settings so a
-// channel gets the default tags without any owner setup step.
+// channel gets the default tags without any owner setup step. Seeds ONCE per
+// channel (userPrefs marker), so deleting every tag stays deleted instead of
+// the defaults reappearing under the user's finger.
 export const ensureDefaultTags = mutation({
   args: { channelId: v.id('channels') },
   handler: async (ctx, { channelId }) => {
     await requireOwner(ctx)
+    const markerKey = `affiliateTagsSeeded:${channelId}`
+    const marker = await ctx.db
+      .query('userPrefs')
+      .withIndex('by_key', (q) => q.eq('key', markerKey))
+      .unique()
+    if (marker) return
     const existing = await tagsOf(ctx, channelId)
-    if (existing.length > 0) return
-    for (const [index, name] of DEFAULT_TAGS.entries()) {
-      await ctx.db.insert('affiliateTags', {
-        channelId,
-        name,
-        sortOrder: index,
-        updatedAt: Date.now(),
-      })
+    if (existing.length === 0) {
+      for (const [index, name] of DEFAULT_TAGS.entries()) {
+        await ctx.db.insert('affiliateTags', {
+          channelId,
+          name,
+          sortOrder: index,
+          updatedAt: Date.now(),
+        })
+      }
     }
+    await ctx.db.insert('userPrefs', { key: markerKey, value: true, updatedAt: Date.now() })
   },
 })
 

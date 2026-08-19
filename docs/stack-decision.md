@@ -88,7 +88,7 @@ One Cloudflare Pages project, one deploy, two surfaces:
 
 **⚠️ `_redirects` must land at `dist/_redirects`, not `dist/app/_redirects`.** If the app builds into `dist/app/`, Vite's `publicDir` copies it to the wrong place. Handle explicitly in the build script and verify the output location.
 
-**Verify before deploy is done:** hard-refresh `/app/scripts/<id>` on a preview, and confirm `/` still serves the landing page.
+**Verify before deploy is done:** hard-refresh `/app/c/<id>/bank` on a preview, and confirm `/` still serves the landing page.
 
 The landing page consumes the **same design tokens** as the app so both read as one product. It's a brochure — don't build it in React.
 

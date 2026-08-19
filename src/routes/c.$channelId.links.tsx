@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 import {
@@ -15,7 +15,7 @@ import { ListPage } from '@/components/layout/ListPage'
 import { Badge, Button, EmptyState, SearchInput, Select } from '@/components/ui'
 import { useConfirm } from '@/components/shared/useConfirm'
 import { CopyAction } from '@/features/links/CopyAction'
-import { useDebouncedValue } from '@/lib/useDebouncedValue'
+import { useLiveSearch } from '@/lib/useLiveSearch'
 import { LinkEditor } from '@/features/links/LinkEditor'
 
 // Affiliate Links (docs/affiliate-links-plan.md): searchable by title and
@@ -46,21 +46,25 @@ function LinksPage() {
   const ensureDefaults = useMutation(api.affiliateLinks.ensureDefaultTags)
 
   // Debounced live search (owner, 2026-08-18); filters hide behind the toggle.
-  const [input, setInput] = useState(q ?? '')
-  const debouncedQ = useDebouncedValue(input.trim(), 250)
-  useEffect(() => {
-    if (debouncedQ === (q ?? '')) return
-    void navigate({
-      search: (prev) => ({ ...prev, q: debouncedQ || undefined }),
-      replace: true,
-    })
-  }, [debouncedQ, q, navigate])
+  const { input, setInput } = useLiveSearch(q, (value) =>
+    void navigate({ search: (prev) => ({ ...prev, q: value }), replace: true }),
+  )
   const [showFilters, setShowFilters] = useState(Boolean(tag))
+  // Session keys the editor so saving a NEW link (editing flips 'new' → id)
+  // does not remount it and drop in-flight typing.
   const [editing, setEditing] = useState<'new' | Id<'affiliateLinks'> | null>(null)
+  const [session, setSession] = useState(0)
+  const openEditor = (target: 'new' | Id<'affiliateLinks'>) => {
+    setSession((s) => s + 1)
+    setEditing(target)
+  }
 
-  // First visit seeds the default tags (idempotent server-side).
+  // First visit seeds the default tags (once per channel, marker-guarded
+  // server-side; the ref keeps a failing mutation from re-firing every render).
+  const seededRef = useRef(false)
   useEffect(() => {
-    if (tags && tags.length === 0) {
+    if (!seededRef.current && tags && tags.length === 0) {
+      seededRef.current = true
       void ensureDefaults({ channelId: channelId as Id<'channels'> })
     }
   }, [tags, ensureDefaults, channelId])
@@ -97,7 +101,7 @@ function LinksPage() {
           Affiliate Links
         </button>
         <LinkEditor
-          key={editing}
+          key={session}
           channelId={channelId as Id<'channels'>}
           link={link}
           tags={tags}
@@ -140,7 +144,7 @@ function LinksPage() {
             >
               <SlidersHorizontal size={15} />
             </Button>
-            <Button type="button" className="max-md:hidden" onClick={() => setEditing('new')}>
+            <Button type="button" className="max-md:hidden" onClick={() => openEditor('new')}>
               <Plus size={14} />
               New link
             </Button>
@@ -174,7 +178,7 @@ function LinksPage() {
             icon={Link2}
             title="No affiliate links yet"
             description="Add a link once, tag each URL by where it goes, then copy from anywhere."
-            action={{ label: 'New link', onClick: () => setEditing('new') }}
+            action={{ label: 'New link', onClick: () => openEditor('new') }}
           />
         )
       }
@@ -182,7 +186,7 @@ function LinksPage() {
       {visible.map((link) => (
         <div key={link._id} className="rounded-panel border border-border bg-surface">
           <button
-            onClick={() => setEditing(link._id)}
+            onClick={() => openEditor(link._id)}
             className="flex min-h-13 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-raised"
           >
             <Link2 size={16} className="shrink-0 text-text-muted" />
@@ -220,7 +224,7 @@ function LinksPage() {
     </ListPage>
     <button
       aria-label="New link"
-      onClick={() => setEditing('new')}
+      onClick={() => openEditor('new')}
       className="fixed bottom-5 right-5 z-20 flex h-13 w-13 items-center justify-center rounded-full bg-primary text-text-inverse shadow-[0_4px_16px_rgba(0,0,0,0.55)] transition-colors hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none md:hidden"
     >
       <Plus size={22} />

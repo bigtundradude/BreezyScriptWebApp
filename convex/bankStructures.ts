@@ -3,7 +3,7 @@ import { mutation, query } from './_generated/server'
 import { requireOwner } from './lib/owner'
 
 // Custom video-structure blueprints (docs/idea-workflow-plan.md §5e), managed
-// in Settings → Video structures. Built-ins live in convex/lib/builtinStructures.
+// in Settings → Video structures. Built-ins live in convex/lib/defaultStructures.
 
 export const list = query({
   args: { channelId: v.id('channels') },
@@ -31,21 +31,6 @@ export const create = mutation({
   },
 })
 
-export const update = mutation({
-  args: {
-    channelId: v.id('channels'),
-    structureId: v.id('bankStructures'),
-    name: v.string(),
-    pattern: v.string(),
-  },
-  handler: async (ctx, { channelId, structureId, name, pattern }) => {
-    await requireOwner(ctx)
-    const structure = await ctx.db.get(structureId)
-    if (!structure || structure.channelId !== channelId) throw new Error('Structure not found')
-    if (!name.trim()) throw new Error('Give the structure a name.')
-    await ctx.db.patch(structureId, { name: name.trim(), pattern: pattern.trim(), updatedAt: Date.now() })
-  },
-})
 
 export const remove = mutation({
   args: { channelId: v.id('channels'), structureId: v.id('bankStructures') },
