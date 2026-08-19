@@ -35,6 +35,8 @@ Dev seed data:
 dist/index.html    ← public landing page
 dist/app/          ← the SPA
 dist/_redirects    ← /app/* /app/index.html 200   (scoped — never a bare /*)
+dist/_headers      ← explicit MIME types for /app assets so Cloudflare can never
+                     serve a module script as application/octet-stream
 ```
 
 ## AI provider keys (Scripts Pro workflow)
@@ -110,5 +112,3 @@ Settings → Environment Variables).
 - `convex/` — schema + functions; every function starts with `requireOwner(ctx)`
 - `landing/` — static public landing page, copied to `dist/` at build
 - `docs/` — migration brief, stack decision, implementation plan, phase-0 audits
-
-<!-- deploy touch: 2026-08-19 -->
