@@ -34,6 +34,22 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Teleprompter defaults and query-param settings
+
+- **Behavior:** teleprompter defaults are now font 38px, side padding 12%,
+  scroll speed 25 (fresh installs and anyone who never re-tuned get these; the
+  stored-prefs key was versioned so the new defaults apply once over old saved
+  values). Font, side padding, and speed are mirrored into the URL as
+  ?tpFont=&tpPad=&tpSpeed= (debounced) in addition to local storage; on open,
+  query values override stored prefs, so a tuned setup survives reloads and
+  can be reused via link. Weight, opacity, mirror, and rail state stay in
+  local storage only.
+- **Web implementation:** `src/features/bank/Teleprompter.tsx` (PREFS_KEY
+  bs.teleprompter.v2, DEFAULT_PREFS, query sync effects).
+- **Porting notes:** the native equivalent of query params is a shareable/
+  restorable settings payload; the precedence is explicit setting > stored
+  prefs > defaults.
+
 ## 2026-08-21 — Ready always advances to the next workflow step
 
 - **Behavior:** in every Scripts Pro workflow step the Ready button is always

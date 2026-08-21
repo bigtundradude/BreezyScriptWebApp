@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import {
   AlignHorizontalSpaceAround,
   Bold,
@@ -20,7 +22,9 @@ import {
 // wins, and the scroll loop accumulates fractional pixels before applying
 // them — assigning fractions straight to scrollTop gets rounded away by the
 // browser, which is why slow speeds used to stall.
-const PREFS_KEY = 'bs.teleprompter'
+// v2: new owner defaults (2026-08-21: font 38, padding 12%, speed 25) — the
+// versioned key makes them take effect once over previously stored prefs.
+const PREFS_KEY = 'bs.teleprompter.v2'
 
 // Text never drops below this opacity, so the screen can't go fully blank.
 const MIN_OPACITY = 30
@@ -50,11 +54,11 @@ interface Prefs {
 const MAX_PADDING_PCT = 40
 
 const DEFAULT_PREFS: Prefs = {
-  fontSize: 32,
+  fontSize: 38,
   fontWeight: 400,
-  paddingPct: 6,
+  paddingPct: 12,
   opacity: 100,
-  speed: 40,
+  speed: 25,
   mirror: false,
   // Closed by default: the overlay rail covers most of a phone's line width,
   // so first-run must show the script, not the controls.
@@ -112,6 +116,44 @@ export function Teleprompter({
       // ignore
     }
   }, [prefs])
+
+  // Query-param mirror (owner, 2026-08-21): font, side padding, and speed also
+  // live in the URL (?tpFont=&tpPad=&tpSpeed=) alongside localStorage, so a
+  // tuned setup survives reloads and can be reused as a link. On open, query
+  // values win over stored prefs; afterwards the sliders drive both.
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as Record<string, unknown>
+  useEffect(() => {
+    if (!open) return
+    const fromQuery: Partial<Prefs> = {}
+    const font = Number(search.tpFont)
+    if (Number.isFinite(font) && font >= 18 && font <= 72) fromQuery.fontSize = font
+    const pad = Number(search.tpPad)
+    if (Number.isFinite(pad) && pad >= 0 && pad <= MAX_PADDING_PCT) fromQuery.paddingPct = pad
+    const speed = Number(search.tpSpeed)
+    if (Number.isFinite(speed) && speed >= 5 && speed <= 110) fromQuery.speed = speed
+    if (Object.keys(fromQuery).length > 0) setPrefs((p) => ({ ...p, ...fromQuery }))
+    // Read once per open; the write effect below takes over from there.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const queryTrio = useDebouncedValue(
+    `${prefs.fontSize}|${prefs.paddingPct}|${prefs.speed}`,
+    300,
+  )
+  useEffect(() => {
+    if (!open) return
+    void navigate({
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        tpFont: prefs.fontSize,
+        tpPad: prefs.paddingPct,
+        tpSpeed: prefs.speed,
+      }),
+      replace: true,
+    } as never)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryTrio, open])
 
   // Keyboard: Escape closes, Space toggles play, ← rewinds to the current
   // paragraph's start (placed where it has just barely entered the screen),
