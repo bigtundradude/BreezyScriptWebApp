@@ -8,7 +8,7 @@ import { Button, Spinner } from '@/components/ui'
 
 export const Route = createFileRoute('/c/$channelId')({
   component: ChannelLayout,
-  errorComponent: ChannelNotFound,
+  errorComponent: ChannelError,
 })
 
 function ChannelLayout() {
@@ -47,6 +47,20 @@ function ChannelNotFound() {
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg">
       <div className="text-md font-semibold text-text-primary">Channel not found</div>
       <p className="text-sm text-text-secondary">It may have been deleted.</p>
+      <Link to="/">
+        <Button variant="secondary" size="sm">Back to home</Button>
+      </Link>
+    </div>
+  )
+}
+
+// Route error boundary: a crash anywhere under /c used to render the
+// misleading "Channel not found" screen — show the actual error instead.
+function ChannelError({ error }: { error: Error }) {
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg px-4">
+      <div className="text-md font-semibold text-text-primary">Something went wrong</div>
+      <p className="max-w-120 break-words text-center text-sm text-danger">{error.message}</p>
       <Link to="/">
         <Button variant="secondary" size="sm">Back to home</Button>
       </Link>

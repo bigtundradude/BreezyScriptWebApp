@@ -34,6 +34,21 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Honest channel-level error screen
+
+- **Behavior:** a crash or thrown query error anywhere inside a channel used
+  to render the misleading "Channel not found. It may have been deleted."
+  screen (that screen was doubling as the route error boundary). The boundary
+  now shows "Something went wrong" with the actual error message and a Back to
+  home action; "Channel not found" remains only for a genuinely missing
+  channel. The last-step Ready flow itself was verified working end to end;
+  the reported "Channel not found" after the last step was this mislabeled
+  boundary catching a transient query error during a deploy.
+- **Web implementation:** `src/routes/c.$channelId.tsx` (ChannelError vs
+  ChannelNotFound).
+- **Porting notes:** never reuse a specific not-found screen as a generic
+  error boundary; always surface the underlying message.
+
 ## 2026-08-21 — Save never navigates; drafts record their structure format
 
 - **Behavior:** (1) every Save button app-wide (workflow steps, note editor,
