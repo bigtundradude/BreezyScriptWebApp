@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Badge, ConfirmDialog, Spinner } from '@/components/ui'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 import { resizeToThumbnail } from '@/features/bank/resizeImage'
 
 const SLOT_LABELS = ['A', 'B', 'C']
@@ -96,13 +97,14 @@ export function ThumbnailsStep({
     if (input) input.value = ''
   }
 
+  // Ready = mark the step ready (uploads save immediately), go to next step.
   const markReady = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'thumbnails' })
-      // Next step (Leading Questions) isn't built yet — land on the overview.
-      goOverview()
+      if (!stepReady) await markStepReady({ channelId, ideaId, step: 'thumbnails' })
+      const next = nextStepRoute('thumbnails')
+      void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -236,7 +238,6 @@ export function ThumbnailsStep({
         missing={missing}
         onCancel={goOverview}
         onSave={() => {}}
-        onDone={goOverview}
         onReady={() => void markReady()}
       />
 

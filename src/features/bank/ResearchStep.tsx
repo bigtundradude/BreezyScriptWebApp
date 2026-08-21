@@ -8,6 +8,7 @@ import { Badge, Button, ConfirmDialog, SearchInput, Spinner, Textarea } from '@/
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
 import { GrowInput } from '@/features/bank/GrowInput'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 
 // Workflow step 5 — Research Collection (docs/idea-workflow-plan.md §5d).
 // Supplements the questions transcript with Second Brain references, pasted
@@ -88,8 +89,10 @@ export function ResearchStep({
         })
         markDirty(false)
         if (!stay) goOverview()
+        return true
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
+        return false
       } finally {
         setSaving(false)
       }
@@ -97,12 +100,17 @@ export function ResearchStep({
     [channelId, ideaId, noteIds, researchText, midwayCta, outroCta, includeDisclaimer, updateResearch, goOverview],
   )
 
+  // Ready = save unsaved edits, mark the step ready, go to the next step.
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'research' })
-      goOverview()
+      if (dirtyRef.current && !(await save(true))) return
+      if (!(idea?.readySteps ?? []).includes('research')) {
+        await markStepReady({ channelId, ideaId, step: 'research' })
+      }
+      const next = nextStepRoute('research')
+      void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -363,7 +371,6 @@ export function ResearchStep({
         missing={[]}
         onCancel={goOverview}
         onSave={() => void save(false)}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
 

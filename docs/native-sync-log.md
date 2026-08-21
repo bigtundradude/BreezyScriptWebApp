@@ -34,6 +34,24 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Ready always advances to the next workflow step
+
+- **Behavior:** in every Scripts Pro workflow step the Ready button is always
+  visible in the action bar, enabled whenever the step's criteria pass
+  (validated against live unsaved state). Clicking it saves any unsaved edits,
+  marks the step ready if not already, and navigates to the NEXT step; the
+  last step (Publish Metadata) returns to the idea overview. While dirty,
+  Cancel and Save appear beside Ready (Save still saves-and-closes,
+  Cmd/Ctrl+S saves-and-stays). Step 1 in a NEW idea: Ready creates the idea,
+  marks step 1 ready, and lands in Potential Titles. Script Drafter's Send to
+  Refinement now advances into Script Refinement instead of the overview.
+- **Web implementation:** `src/features/bank/WorkflowActionBar.tsx`,
+  `nextStepRoute` in `src/features/bank/steps.ts`, `ready()` handlers in every
+  step component under `src/features/bank/`.
+- **Porting notes:** the save-then-mark-then-advance sequence must stop on a
+  failed save; validation for Ready runs on local form state so it works while
+  dirty.
+
 ## 2026-08-21 — Resilient JSON parsing for title and question generation
 
 - **Behavior:** when the model reply wraps the JSON array in prose or gets cut

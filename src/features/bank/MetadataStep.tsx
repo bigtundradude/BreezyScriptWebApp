@@ -59,11 +59,13 @@ export function MetadataStep({
     }
   }
 
+  // Last step: Ready has no next step to advance to, so it closes to the
+  // idea overview (steps.ts nextStepRoute returns null here).
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'metadata' })
+      if (!stepReady) await markStepReady({ channelId, ideaId, step: 'metadata' })
       goOverview()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
@@ -170,7 +172,6 @@ export function MetadataStep({
         missing={[]}
         onCancel={goOverview}
         onSave={() => {}}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
     </div>

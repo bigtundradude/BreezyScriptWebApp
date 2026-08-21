@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Doc, Id } from '../../../convex/_generated/dataModel'
 import { Button, ConfirmDialog, Spinner, Textarea } from '@/components/ui'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 
 // Workflow step 4 — Leading Questions (docs/idea-workflow-plan.md §5c).
 // Flow: review the two must-answer questions → generate 25 topic-specific
@@ -63,6 +64,11 @@ export function QuestionsStep({
 
   const overviewTo = `/c/${channelId}/bank/${ideaId}`
   const goOverview = useCallback(() => void navigate({ to: overviewTo }), [navigate, overviewTo])
+  // Ready always advances to the next step (owner, 2026-08-21).
+  const goNext = useCallback(() => {
+    const next = nextStepRoute('questions')
+    void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
+  }, [navigate, overviewTo])
 
   const save = useCallback(
     async (stay: boolean) => {
@@ -72,8 +78,10 @@ export function QuestionsStep({
         await updateTranscript({ channelId, ideaId, transcript })
         markDirty(false)
         if (!stay) goOverview()
+        return true
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
+        return false
       } finally {
         setSaving(false)
       }
@@ -81,12 +89,16 @@ export function QuestionsStep({
     [channelId, ideaId, transcript, updateTranscript, goOverview],
   )
 
+  // Ready = save unsaved edits, mark the step ready, go to the next step.
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'questions' })
-      goOverview()
+      if (dirtyRef.current && !(await save(true))) return
+      if (!(idea?.readySteps ?? []).includes('questions')) {
+        await markStepReady({ channelId, ideaId, step: 'questions' })
+      }
+      goNext()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -256,7 +268,6 @@ export function QuestionsStep({
         missing={missing}
         onCancel={goOverview}
         onSave={() => void save(false)}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
 
