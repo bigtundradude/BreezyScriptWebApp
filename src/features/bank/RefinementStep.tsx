@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Badge, Button, ConfirmDialog, Spinner, Textarea } from '@/components/ui'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 import { personalizeText } from '@/features/bank/personalize'
 
 // Workflow step 7 — Script Refinement (docs/idea-workflow-plan.md §5b):
@@ -64,15 +65,17 @@ export function RefinementStep({
 
   const save = useCallback(
     async (stay: boolean) => {
-      if (!current) return
+      if (!current) return false
       setSaving(true)
       setError('')
       try {
         await updateText({ channelId, refinementId: current._id, text })
         markDirty(false)
         if (!stay) goOverview()
+        return true
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
+        return false
       } finally {
         setSaving(false)
       }
@@ -80,12 +83,17 @@ export function RefinementStep({
     [channelId, current, text, updateText, goOverview],
   )
 
+  // Ready = save unsaved edits, mark the step ready, go to the next step.
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markRefineReady({ channelId, ideaId })
-      goOverview()
+      if (dirtyRef.current && !(await save(true))) return
+      if (!(idea?.readySteps ?? []).includes('refine')) {
+        await markRefineReady({ channelId, ideaId })
+      }
+      const next = nextStepRoute('refine')
+      void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -247,7 +255,6 @@ export function RefinementStep({
         missing={text.trim() ? [] : ['write the script']}
         onCancel={goOverview}
         onSave={() => void save(false)}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
 

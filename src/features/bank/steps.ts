@@ -46,3 +46,10 @@ export const STEPS: Array<{
 export function isStepUnlocked(index: number, readySteps: string[]) {
   return STEPS.slice(0, index).every((step) => readySteps.includes(step.id))
 }
+
+// Ready always advances to the NEXT step (owner, 2026-08-21); the last step
+// returns null and its Ready falls back to the idea overview.
+export function nextStepRoute(step: StepId): string | null {
+  const index = STEPS.findIndex((s) => s.id === step)
+  return STEPS[index + 1]?.route ?? null
+}

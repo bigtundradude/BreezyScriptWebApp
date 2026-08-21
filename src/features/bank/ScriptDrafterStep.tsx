@@ -7,6 +7,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { DEFAULT_STRUCTURES } from '../../../convex/lib/defaultStructures'
 import { Badge, Button, ConfirmDialog, Input, Markdown, Select, Spinner } from '@/components/ui'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 
 // Workflow step 6 — Script Drafter (docs/idea-workflow-plan.md §5e).
 // Persona + minutes (× reading-pace WPM) + structure + collected materials →
@@ -121,13 +122,16 @@ export function ScriptDrafterStep({
     }
   }
 
+  // Sending a draft is this step's Ready: it marks the step and advances
+  // straight into Script Refinement (owner, 2026-08-21).
   const send = async (draftId: Id<'bankDrafts'>) => {
     setSending(true)
     setError('')
     try {
       await sendToRefinement({ channelId, draftId })
       setPreviewId(null)
-      goOverview()
+      const next = nextStepRoute('draft')
+      void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not send to refinement. Try again.')
     } finally {
@@ -285,7 +289,10 @@ export function ScriptDrafterStep({
         missing={idea.draftSentRef ? [] : ['send a draft to refinement']}
         onCancel={goOverview}
         onSave={() => {}}
-        onDone={goOverview}
+        onReady={() => {
+          const next = nextStepRoute('draft')
+          void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
+        }}
       />
 
       {/* Full-screen reading preview */}

@@ -7,6 +7,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { Badge, Button, Markdown, Spinner } from '@/components/ui'
 import { Teleprompter } from '@/features/bank/Teleprompter'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 
 // Workflow step 8 — Ready to Record (docs/idea-workflow-plan.md §5b): the
 // current refinement script, strictly read-only (editing lives in step 7),
@@ -53,12 +54,14 @@ export function RecordStep({
   const words = current.text.split(/\s+/).filter(Boolean).length
   const minutes = wpm > 0 ? Math.round((words / wpm) * 10) / 10 : 0
 
+  // Ready = mark the step ready (read-only step), go to the next step.
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'record' })
-      goOverview()
+      if (!stepReady) await markStepReady({ channelId, ideaId, step: 'record' })
+      const next = nextStepRoute('record')
+      void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -108,7 +111,6 @@ export function RecordStep({
         missing={[]}
         onCancel={goOverview}
         onSave={() => {}}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
 

@@ -7,6 +7,7 @@ import type { Doc, Id } from '../../../convex/_generated/dataModel'
 import { Button, ConfirmDialog, Spinner } from '@/components/ui'
 import { GrowInput } from '@/features/bank/GrowInput'
 import { WorkflowActionBar } from '@/features/bank/WorkflowActionBar'
+import { nextStepRoute } from '@/features/bank/steps'
 
 const TITLE_SLOTS = 3
 
@@ -62,6 +63,11 @@ export function TitlesStep({
 
   const overviewTo = `/c/${channelId}/bank/${ideaId}`
   const goOverview = useCallback(() => void navigate({ to: overviewTo }), [navigate, overviewTo])
+  // Ready always advances to the next step (owner, 2026-08-21).
+  const goNext = useCallback(() => {
+    const next = nextStepRoute('titles')
+    void navigate({ to: next ? `${overviewTo}/${next}` : overviewTo })
+  }, [navigate, overviewTo])
 
   const save = useCallback(
     async (stay: boolean) => {
@@ -71,8 +77,10 @@ export function TitlesStep({
         await updateTitles({ channelId, ideaId, potentialTitles, primaryIndex })
         markDirty(false)
         if (!stay) goOverview()
+        return true
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
+        return false
       } finally {
         setSaving(false)
       }
@@ -80,12 +88,16 @@ export function TitlesStep({
     [channelId, ideaId, potentialTitles, primaryIndex, updateTitles, goOverview],
   )
 
+  // Ready = save unsaved edits, mark the step ready, go to the next step.
   const ready = async () => {
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'titles' })
-      goOverview()
+      if (dirtyRef.current && !(await save(true))) return
+      if (!(idea?.readySteps ?? []).includes('titles')) {
+        await markStepReady({ channelId, ideaId, step: 'titles' })
+      }
+      goNext()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -231,7 +243,6 @@ export function TitlesStep({
         missing={missing}
         onCancel={goOverview}
         onSave={() => void save(false)}
-        onDone={goOverview}
         onReady={() => void ready()}
       />
 

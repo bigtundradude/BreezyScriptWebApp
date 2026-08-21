@@ -103,13 +103,23 @@ export function BankIdeaEditor({
     [title, description, rating, status, isNew, channelId, ideaId, create, updateIdea, navigate, goDone],
   )
 
+  // Ready = save unsaved edits (creating the idea if new), mark step 1 ready,
+  // and advance straight into Potential Titles (owner, 2026-08-21).
   const ready = async () => {
-    if (isNew || !ideaId) return
     setReadying(true)
     setError('')
     try {
-      await markStepReady({ channelId, ideaId, step: 'idea' })
-      void navigate({ to: `/c/${channelId}/bank/${ideaId}` })
+      let id = ideaId
+      if (isNew) {
+        id = await create({ channelId, title, description, rating, status })
+        markDirty(false)
+      } else if (dirtyRef.current && ideaId) {
+        await updateIdea({ channelId, ideaId, title, description, rating, status })
+        markDirty(false)
+      }
+      if (!id) return
+      await markStepReady({ channelId, ideaId: id, step: 'idea' })
+      void navigate({ to: `/c/${channelId}/bank/${id}/titles` })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not mark ready — try again.')
     } finally {
@@ -230,8 +240,7 @@ export function BankIdeaEditor({
         missing={missing}
         onCancel={goDone}
         onSave={() => void save(false)}
-        onDone={goDone}
-        onReady={isNew ? undefined : () => void ready()}
+        onReady={() => void ready()}
         left={
           !isNew && (
             <Button variant="ghost" onClick={() => setConfirmingDelete(true)}>
