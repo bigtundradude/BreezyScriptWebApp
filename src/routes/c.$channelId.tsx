@@ -5,6 +5,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { Header } from '@/components/layout/Header'
 import { Button, Spinner } from '@/components/ui'
+import { AppErrorScreen } from '@/components/shared/AppErrorScreen'
 
 export const Route = createFileRoute('/c/$channelId')({
   component: ChannelLayout,
@@ -55,15 +56,8 @@ function ChannelNotFound() {
 }
 
 // Route error boundary: a crash anywhere under /c used to render the
-// misleading "Channel not found" screen — show the actual error instead.
+// misleading "Channel not found" screen — delegate to the shared error screen
+// (which special-cases the wrong-Google-account rejection with a Sign out).
 function ChannelError({ error }: { error: Error }) {
-  return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg px-4">
-      <div className="text-md font-semibold text-text-primary">Something went wrong</div>
-      <p className="max-w-120 break-words text-center text-sm text-danger">{error.message}</p>
-      <Link to="/">
-        <Button variant="secondary" size="sm">Back to home</Button>
-      </Link>
-    </div>
-  )
+  return <AppErrorScreen error={error} />
 }

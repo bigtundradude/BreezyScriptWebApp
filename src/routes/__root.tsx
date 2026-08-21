@@ -1,11 +1,13 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { Authenticated, AuthLoading, Unauthenticated } from 'convex/react'
 import { SignIn } from '@/components/auth/SignIn'
+import { AppErrorScreen } from '@/components/shared/AppErrorScreen'
 import { CommandPalette } from '@/components/shared/CommandPalette'
 import { Spinner } from '@/components/ui'
 
 export const Route = createRootRoute({
   component: RootComponent,
+  errorComponent: AppErrorScreen,
 })
 
 function RootComponent() {

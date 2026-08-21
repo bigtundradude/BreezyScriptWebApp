@@ -34,6 +34,22 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Wrong-account sign-ins get a dedicated screen
+
+- **Behavior:** signing into the app with a Google account that is not the
+  owner used to error every page at once with a generic boundary (prod also
+  redacted the reason). The owner gate now throws a structured error whose
+  code and rejected email reach the client even in production; both the root
+  and channel error boundaries render a "Wrong Google account" screen naming
+  the rejected account, with a Sign out button that returns to the sign-in
+  card. Other errors still show "Something went wrong" plus the message.
+- **Web implementation:** `convex/lib/owner.ts` (ConvexError with
+  code not_owner/not_signed_in), `src/components/shared/AppErrorScreen.tsx`,
+  errorComponent wiring in `src/routes/__root.tsx` and
+  `src/routes/c.$channelId.tsx`.
+- **Porting notes:** auth-rejection errors must carry a machine-readable code
+  end to end so the client can distinguish "wrong account" from real failures.
+
 ## 2026-08-21 — Honest channel-level error screen
 
 - **Behavior:** a crash or thrown query error anywhere inside a channel used

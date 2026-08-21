@@ -1,4 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import { ConvexError } from 'convex/values'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
 // The single-user authorization layer (stack decision §4): every Convex
@@ -11,7 +12,10 @@ export async function requireOwner(ctx: QueryCtx | MutationCtx) {
   if (!owner) throw new Error('OWNER_EMAIL is not configured on this deployment')
 
   const identity = await ctx.auth.getUserIdentity()
-  if (!identity) throw new Error('Not signed in')
+  // ConvexError: its data reaches the client even on prod deployments (plain
+  // Error messages are redacted to "Server Error"), so the UI can show a real
+  // wrong-account screen instead of a generic boundary.
+  if (!identity) throw new ConvexError({ code: 'not_signed_in' })
 
   let email = typeof identity.email === 'string' ? identity.email : undefined
   if (!email) {
@@ -25,7 +29,7 @@ export async function requireOwner(ctx: QueryCtx | MutationCtx) {
   if (!email || email.toLowerCase() !== owner.toLowerCase()) {
     // Single-user personal tool: naming the rejected account is fine and makes
     // OWNER_EMAIL mismatches self-diagnosing.
-    throw new Error(`Not authorized: signed in as ${email ?? 'an account with no email'}`)
+    throw new ConvexError({ code: 'not_owner', email: email ?? '' })
   }
   return identity
 }
