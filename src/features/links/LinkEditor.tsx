@@ -226,7 +226,7 @@ export function LinkEditor({
               <Button variant="secondary" onClick={() => void cancel()}>
                 Cancel
               </Button>
-              <Button loading={saving} onClick={() => void doSave(false)}>
+              <Button loading={saving} onClick={() => void doSave(true)}>
                 Save
               </Button>
             </>

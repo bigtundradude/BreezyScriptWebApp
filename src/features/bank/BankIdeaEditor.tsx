@@ -239,7 +239,7 @@ export function BankIdeaEditor({
         isReady={stepReady}
         missing={missing}
         onCancel={goDone}
-        onSave={() => void save(false)}
+        onSave={() => void save(true)}
         onReady={() => void ready()}
         left={
           !isNew && (

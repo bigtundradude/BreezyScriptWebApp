@@ -254,7 +254,7 @@ export function RefinementStep({
         isReady={stepReady}
         missing={text.trim() ? [] : ['write the script']}
         onCancel={goOverview}
-        onSave={() => void save(false)}
+        onSave={() => void save(true)}
         onReady={() => void ready()}
       />
 

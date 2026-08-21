@@ -34,6 +34,24 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Save never navigates; drafts record their structure format
+
+- **Behavior:** (1) every Save button app-wide (workflow steps, note editor,
+  persona/link/channel editors) now saves and STAYS on the page, identical to
+  Cmd/Ctrl+S; only Ready advances (to the next step), and Close/Cancel/back
+  links exit. Saving a NEW entity (note, idea, persona, link, channel) lands
+  in the created record's editor instead of bouncing to a list. (2) every
+  generated script draft now records the structure format it was built with
+  (shorts, medium, long, podcast, or custom for user structures), shown next
+  to the structure name in the drafts list and preview header.
+- **Web implementation:** Save wiring across `src/features/bank/*`,
+  `src/features/brain/NoteEditor.tsx`, `src/features/settings/PersonasSettings.tsx`,
+  `src/features/links/LinkEditor.tsx`, `src/routes/settings.tsx`;
+  `structureFormat` on the bankDrafts table, `convex/bankDrafts.ts`,
+  `src/features/bank/ScriptDrafterStep.tsx`.
+- **Porting notes:** older drafts have no stored format (optional field); hide
+  the format when absent.
+
 ## 2026-08-21 — Teleprompter defaults and query-param settings
 
 - **Behavior:** teleprompter defaults are now font 38px, side padding 12%,

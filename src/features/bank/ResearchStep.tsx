@@ -370,7 +370,7 @@ export function ResearchStep({
         isReady={stepReady}
         missing={[]}
         onCancel={goOverview}
-        onSave={() => void save(false)}
+        onSave={() => void save(true)}
         onReady={() => void ready()}
       />
 

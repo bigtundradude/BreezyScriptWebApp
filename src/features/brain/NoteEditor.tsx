@@ -153,14 +153,20 @@ export function NoteEditor({
       setError('')
       try {
         if (isNew) {
-          await create({ channelId, title, body, kind, tags })
-        } else {
-          await update({ channelId, noteId, title, body, kind, tags })
+          // Save stays on the note (owner, 2026-08-21): land in the created
+          // note's editor instead of bouncing back to the list.
+          const newId = await create({ channelId, title, body, kind, tags })
+          markDirty(false)
+          cancelBuffer()
+          clearDraft(bufferKey)
+          void navigate({ to: `/c/${channelId}/brain/${newId}`, replace: true })
+          return
         }
+        await update({ channelId, noteId, title, body, kind, tags })
         markDirty(false)
         cancelBuffer()
         clearDraft(bufferKey)
-        if (!stay || isNew) backToList()
+        if (!stay) backToList()
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Save failed — your text is still here. Try again.')
       } finally {
@@ -221,7 +227,7 @@ export function NoteEditor({
               <span className="text-danger">Delete</span>
             </Button>
           )}
-          <Button size="sm" loading={saving} disabled={!dirty && !isNew} onClick={() => void save(false)}>
+          <Button size="sm" loading={saving} disabled={!dirty && !isNew} onClick={() => void save(true)}>
             Save
           </Button>
         </div>

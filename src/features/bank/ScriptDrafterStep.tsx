@@ -265,8 +265,9 @@ export function ScriptDrafterStep({
                     {isSent && <Badge variant="success">in refinement</Badge>}
                   </span>
                   <span className="mt-0.5 block truncate text-xs text-text-secondary">
-                    {draft.structureName} · {draft.targetMinutes} min ·{' '}
-                    {draft.wordCount.toLocaleString()} words
+                    {draft.structureName}
+                    {draft.structureFormat ? ` (${draft.structureFormat})` : ''} ·{' '}
+                    {draft.targetMinutes} min · {draft.wordCount.toLocaleString()} words
                   </span>
                 </span>
               </button>
@@ -303,7 +304,9 @@ export function ScriptDrafterStep({
               Draft {numberOf(previewId)}
               {previewDraft && (
                 <span className="ml-2 font-normal text-text-muted">
-                  {previewDraft.structureName} · {previewDraft.wordCount.toLocaleString()} words
+                  {previewDraft.structureName}
+                  {previewDraft.structureFormat ? ` (${previewDraft.structureFormat})` : ''} ·{' '}
+                  {previewDraft.wordCount.toLocaleString()} words
                 </span>
               )}
             </span>

@@ -30,11 +30,12 @@ async function getOwnedIdea(ctx: QueryCtx, channelId: Id<'channels'>, ideaId: Id
   return idea
 }
 
-function builtinStructureText(ref: string): { name: string; text: string } | null {
+function builtinStructureText(ref: string): { name: string; text: string; format: string } | null {
   const structure = DEFAULT_STRUCTURES.find((s) => s.id === ref)
   if (!structure) return null
   return {
     name: structure.name,
+    format: structure.format,
     text: `# Structure: ${structure.name} (${structure.format})\nBest for: ${structure.bestFor}\n\n${structure.pattern}`,
   }
 }
@@ -43,7 +44,8 @@ async function resolveStructure(ctx: QueryCtx, channelId: Id<'channels'>, ref: s
   const builtin = builtinStructureText(ref)
   if (builtin) return builtin
   const custom = await ctx.db.get(ref as Id<'bankStructures'>).catch(() => null)
-  if (custom && custom.channelId === channelId) return { name: custom.name, text: custom.pattern }
+  if (custom && custom.channelId === channelId)
+    return { name: custom.name, text: custom.pattern, format: 'custom' }
   throw new Error('Pick a video structure.')
 }
 
@@ -127,6 +129,7 @@ export const listDrafts = query({
       _creationTime: d._creationTime,
       personaLabel: d.personaLabel,
       structureName: d.structureName,
+      structureFormat: d.structureFormat,
       targetMinutes: d.targetMinutes,
       wordCount: d.wordCount,
       model: d.model,
@@ -198,6 +201,7 @@ export const insertDraft = internalMutation({
     text: v.string(),
     personaLabel: v.string(),
     structureName: v.string(),
+    structureFormat: v.optional(v.string()),
     targetMinutes: v.number(),
     wordsPerMinute: v.number(),
     provider: v.string(),
@@ -213,6 +217,7 @@ export const insertDraft = internalMutation({
       text: args.text,
       personaLabel: args.personaLabel,
       structureName: args.structureName,
+      structureFormat: args.structureFormat,
       targetMinutes: args.targetMinutes,
       wordsPerMinute: args.wordsPerMinute,
       wordCount: wordCountOf(args.text),
@@ -330,6 +335,7 @@ export const generate = action({
         text,
         personaLabel: context.personaLabel,
         structureName: context.structure.name,
+        structureFormat: context.structure.format,
         targetMinutes,
         wordsPerMinute: context.wordsPerMinute,
         provider: result.provider,

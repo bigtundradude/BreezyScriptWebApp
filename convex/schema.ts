@@ -122,6 +122,7 @@ export default defineSchema({
     text: v.string(), // markdown script
     personaLabel: v.string(),
     structureName: v.string(),
+    structureFormat: v.optional(v.string()), // 'shorts' | 'medium' | 'long' | 'podcast' | 'custom'
     targetMinutes: v.number(),
     wordsPerMinute: v.number(),
     wordCount: v.number(),

@@ -242,7 +242,7 @@ export function TitlesStep({
         isReady={stepReady}
         missing={missing}
         onCancel={goOverview}
-        onSave={() => void save(false)}
+        onSave={() => void save(true)}
         onReady={() => void ready()}
       />
 
