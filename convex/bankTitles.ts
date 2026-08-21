@@ -3,7 +3,7 @@ import { action, internalMutation, internalQuery, mutation, query } from './_gen
 import { internal } from './_generated/api'
 import { requireOwner } from './lib/owner'
 import { BUILTIN_TITLE_SHAPES } from './lib/builtinTitleShapes'
-import { NO_DASH_RULE, runChat, stripDashes } from './llm'
+import { NO_DASH_RULE, extractJsonArray, runChat, stripDashes } from './llm'
 
 // Title generation for the Scripts Pro titles step (docs/idea-workflow-plan.md §4):
 // every title template of the channel is instantiated into a concrete title for
@@ -115,19 +115,6 @@ export const insertBatch = internalMutation({
   },
 })
 
-// Lenient JSON extraction: models sometimes wrap the array in prose or fences.
-function extractJsonArray(raw: string): unknown[] | null {
-  const start = raw.indexOf('[')
-  const end = raw.lastIndexOf(']')
-  if (start === -1 || end <= start) return null
-  try {
-    const parsed: unknown = JSON.parse(raw.slice(start, end + 1))
-    return Array.isArray(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
-
 // Returns failures as data (not throws) so the client shows the message alone,
 // without Convex's dev-mode server-error wrapper.
 export const generate = action({
@@ -169,10 +156,10 @@ export const generate = action({
         },
       ],
       // ~120 templates → one title each; give the reply plenty of room.
-      { maxTokens: 12000 },
+      { maxTokens: 16000 },
     )
 
-    const parsed = extractJsonArray(result.text)
+    const parsed = extractJsonArray(result.text, 'bankTitles.generate')
     if (!parsed) {
       throw new Error('The model reply had no usable JSON — try Generate again.')
     }

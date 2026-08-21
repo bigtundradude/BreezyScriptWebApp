@@ -30,6 +30,7 @@ import type * as lib_defaultStructures from "../lib/defaultStructures.js";
 import type * as lib_owner from "../lib/owner.js";
 import type * as llm_anthropic from "../llm/anthropic.js";
 import type * as llm_index from "../llm/index.js";
+import type * as llm_json from "../llm/json.js";
 import type * as llm_openaiCompat from "../llm/openaiCompat.js";
 import type * as llm_types from "../llm/types.js";
 import type * as notes from "../notes.js";
@@ -66,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   "lib/owner": typeof lib_owner;
   "llm/anthropic": typeof llm_anthropic;
   "llm/index": typeof llm_index;
+  "llm/json": typeof llm_json;
   "llm/openaiCompat": typeof llm_openaiCompat;
   "llm/types": typeof llm_types;
   notes: typeof notes;

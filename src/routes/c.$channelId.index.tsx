@@ -1,5 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowRight, Brain, Clapperboard, Link2, Settings, type LucideIcon } from 'lucide-react'
+import { useQuery } from 'convex/react'
+import {
+  ArrowRight,
+  Bot,
+  Brain,
+  ChevronRight,
+  Clapperboard,
+  Link2,
+  Settings,
+  type LucideIcon,
+} from 'lucide-react'
+import { api } from '../../convex/_generated/api'
 
 export const Route = createFileRoute('/c/$channelId/')({
   component: ChannelHome,
@@ -45,11 +56,42 @@ const TOOLS: Array<{
 function ChannelHome() {
   const { channelId } = Route.useParams()
 
+  // AI readiness: both task classes need an active provider with a model and
+  // a detected key, or generation features fail. While loading, show nothing
+  // (no banner flash).
+  const ai = useQuery(api.aiSettings.getAll)
+  const aiReady =
+    !ai ||
+    (['simple', 'scripts'] as const).every((task) => {
+      const provider = ai.active[task]
+      if (!provider) return false
+      const model =
+        task === 'simple' ? ai.providers[provider].simpleModel : ai.providers[provider].scriptModel
+      return Boolean(model && ai.keys[provider])
+    })
+
   return (
     <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 py-5 md:px-8 md:py-8">
       <h1 className="text-center text-2xl font-extrabold tracking-[-0.03em] text-text-primary">
         BreezyScript
       </h1>
+      {!aiReady && (
+        <Link
+          to={'/c/$channelId/settings/ai' as string}
+          params={{ channelId }}
+          className="flex min-h-13 items-center gap-3 rounded-panel border border-warning/30 bg-warning/12 px-4 py-3 transition-colors hover:bg-warning/20"
+        >
+          <Bot size={18} className="shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-text-primary">AI is not set up yet</div>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Title generation, questions, and script drafting need a provider. Tap to open AI
+              integration settings.
+            </p>
+          </div>
+          <ChevronRight size={15} className="shrink-0 text-warning" />
+        </Link>
+      )}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         {TOOLS.map((tool) => (
           <Link
