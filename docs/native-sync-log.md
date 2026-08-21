@@ -34,6 +34,19 @@ action bars, FABs on phones, confirmed deletes, 44px tap targets.
 
 ---
 
+## 2026-08-21 — Resilient JSON parsing for title and question generation
+
+- **Behavior:** when the model reply wraps the JSON array in prose or gets cut
+  off mid-array at the token limit, generation now salvages every complete row
+  instead of failing with "no usable JSON". Token budgets raised (titles
+  16000, questions 8000). On total parse failure the raw reply head is logged
+  server-side so failures are diagnosable.
+- **Web implementation:** shared `convex/llm/json.ts` `extractJsonArray`, used
+  by `convex/bankTitles.ts` and `convex/bankQuestions.ts`.
+- **Porting notes:** whatever LLM plumbing the native app uses needs the same
+  three-step parse: strict array slice, truncation salvage to the last
+  complete object, then log-and-fail.
+
 ## 2026-08-21 — One page-level Save on AI integrations settings
 
 - **Behavior:** the AI integrations page no longer has per-provider save

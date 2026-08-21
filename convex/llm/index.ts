@@ -42,3 +42,4 @@ export async function runChat(
   }
   return { text, provider: resolved.provider, model: resolved.model }
 }
+export * from './json'

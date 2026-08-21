@@ -2,7 +2,7 @@ import { v } from 'convex/values'
 import { action, internalMutation, internalQuery, mutation, query } from './_generated/server'
 import { internal } from './_generated/api'
 import { requireOwner } from './lib/owner'
-import { NO_DASH_RULE, runChat, stripDashes } from './llm'
+import { NO_DASH_RULE, extractJsonArray, runChat, stripDashes } from './llm'
 
 // Leading Questions step (docs/idea-workflow-plan.md §5c): two required
 // questions plus 25 generated, topic-specific ones that guide the user's
@@ -196,17 +196,6 @@ export function composeQuestionsPrompt(idea: {
   return { system, user }
 }
 
-function extractJsonArray(raw: string): unknown[] | null {
-  const start = raw.indexOf('[')
-  const end = raw.lastIndexOf(']')
-  if (start === -1 || end <= start) return null
-  try {
-    const parsed: unknown = JSON.parse(raw.slice(start, end + 1))
-    return Array.isArray(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
 
 // Returns failures as data (not throws) so the client shows the message alone.
 export const generate = action({
@@ -225,9 +214,9 @@ export const generate = action({
           { role: 'system', content: prompt.system },
           { role: 'user', content: prompt.user },
         ],
-        { maxTokens: 6000 },
+        { maxTokens: 8000 },
       )
-      const parsed = extractJsonArray(result.text)
+      const parsed = extractJsonArray(result.text, 'bankQuestions.generate')
       if (!parsed) throw new Error('The model reply had no usable JSON — try Generate again.')
       const items: Array<{ category: string; text: string }> = []
       for (const entry of parsed) {
