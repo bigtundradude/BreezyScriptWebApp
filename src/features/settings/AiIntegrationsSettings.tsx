@@ -30,7 +30,7 @@ export function AiIntegrationsSettings() {
   })
   const [loaded, setLoaded] = useState(false)
   const [dirtyProviders, setDirtyProviders] = useState<Set<Provider>>(new Set())
-  const [savingProvider, setSavingProvider] = useState<Provider | null>(null)
+  const [saving, setSaving] = useState(false)
   const [testingProvider, setTestingProvider] = useState<Provider | null>(null)
   const [refreshingProvider, setRefreshingProvider] = useState<Provider | null>(null)
   const [notes, setNotes] = useState<Partial<Record<Provider, { ok: boolean; message: string }>>>({})
@@ -87,18 +87,23 @@ export function AiIntegrationsSettings() {
     setDirtyProviders((prev) => new Set(prev).add(provider))
   }
 
-  const saveProvider = async (provider: Provider) => {
-    setSavingProvider(provider)
+  // One page-level save (owner, 2026-08-21): writes every provider with
+  // unsaved model picks in one go.
+  const saveAll = async () => {
+    setSaving(true)
     try {
-      await setModels({ provider, ...models[provider] })
-      setDirtyProviders((prev) => {
-        const next = new Set(prev)
-        next.delete(provider)
-        return next
-      })
+      for (const provider of dirtyProviders) {
+        await setModels({ provider, ...models[provider] })
+      }
+      setDirtyProviders(new Set())
     } finally {
-      setSavingProvider(null)
+      setSaving(false)
     }
+  }
+
+  const revertAll = () => {
+    if (settings) setModelsState(settings.providers)
+    setDirtyProviders(new Set())
   }
 
   const runTest = async (provider: Provider) => {
@@ -205,15 +210,6 @@ export function AiIntegrationsSettings() {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
-                variant="secondary"
-                disabled={!dirtyProviders.has(provider.id)}
-                loading={savingProvider === provider.id}
-                onClick={() => void saveProvider(provider.id)}
-              >
-                Save selection
-              </Button>
-              <Button
-                size="sm"
                 variant="ghost"
                 loading={testingProvider === provider.id}
                 onClick={() => void runTest(provider.id)}
@@ -230,6 +226,17 @@ export function AiIntegrationsSettings() {
           </div>
         )
       })}
+
+      {dirtyProviders.size > 0 && (
+        <div className="sticky bottom-0 z-10 mt-1 flex items-center justify-end gap-2 border-t border-border bg-bg py-3">
+          <Button variant="secondary" onClick={revertAll}>
+            Cancel
+          </Button>
+          <Button loading={saving} onClick={() => void saveAll()}>
+            Save
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
