@@ -20,7 +20,14 @@ export function AppErrorScreen({ error }: { error: Error }) {
             : 'Your session is not signed in with the owner account.'}{' '}
           Sign out, then sign back in with the owner Google account.
         </p>
-        <Button variant="secondary" onClick={() => void signOut()}>
+        <Button
+          variant="secondary"
+          onClick={() =>
+            // Hard reload after sign-out: the error boundary is sticky and
+            // would keep showing this screen after the auth state clears.
+            void signOut().finally(() => window.location.assign('/app/'))
+          }
+        >
           Sign out
         </Button>
       </div>
